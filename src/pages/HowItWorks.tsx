@@ -9,9 +9,10 @@ import {
   Settings,
   Users,
   CheckCircle2,
+  ArrowLeft,
   ArrowRight,
-  Play,
-  Pause
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 const steps = [
@@ -82,24 +83,31 @@ const benefits = [
 
 export const HowItWorks: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
   useEffect(() => {
-    if (!isPlaying) return;
+    if (!isAutoPlaying) return;
 
     const interval = setInterval(() => {
       setCurrentStep((prev) => (prev + 1) % steps.length);
-    }, 3000); // Change step every 3 seconds
+    }, 4000); // Change step every 4 seconds
 
     return () => clearInterval(interval);
-  }, [isPlaying]);
+  }, [isAutoPlaying]);
 
   const nextStep = () => {
+    setIsAutoPlaying(false);
     setCurrentStep((prev) => (prev + 1) % steps.length);
   };
 
   const prevStep = () => {
+    setIsAutoPlaying(false);
     setCurrentStep((prev) => (prev - 1 + steps.length) % steps.length);
+  };
+
+  const goToStep = (index: number) => {
+    setIsAutoPlaying(false);
+    setCurrentStep(index);
   };
 
   return (
@@ -133,47 +141,37 @@ export const HowItWorks: React.FC = () => {
       {/* Interactive Process Animation */}
       <section className="py-20">
         <div className="container">
-          <div className="max-w-6xl mx-auto">
-            {/* Process Controls */}
-            <div className="flex justify-center items-center mb-12 space-x-4">
-              <motion.button
-                onClick={() => setIsPlaying(!isPlaying)}
-                className="flex items-center space-x-2 bg-primary text-white px-6 py-3 rounded-full hover:bg-primary-600 transition-colors"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-                <span>{isPlaying ? 'Pause' : 'Play'}</span>
-              </motion.button>
-              
-              <div className="flex space-x-2">
-                {steps.map((_, index) => (
-                  <motion.button
-                    key={index}
-                    onClick={() => setCurrentStep(index)}
-                    className={`w-3 h-3 rounded-full transition-colors ${
-                      index === currentStep ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'
-                    }`}
-                    whileHover={{ scale: 1.2 }}
-                    whileTap={{ scale: 0.9 }}
-                  />
-                ))}
-              </div>
-            </div>
-
+          <div className="max-w-7xl mx-auto">
             {/* Main Process Display */}
             <div className="relative">
-              {/* Background Circle */}
+              {/* Animated Background Elements */}
               <div className="absolute inset-0 flex items-center justify-center">
                 <motion.div
-                  className="w-96 h-96 border-4 border-gray-200 dark:border-gray-700 rounded-full"
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                  className="w-[500px] h-[500px] border-2 border-primary/20 rounded-full"
+                  animate={{ 
+                    rotate: 360,
+                    scale: [1, 1.05, 1]
+                  }}
+                  transition={{ 
+                    rotate: { duration: 30, repeat: Infinity, ease: "linear" },
+                    scale: { duration: 4, repeat: Infinity, ease: "easeInOut" }
+                  }}
+                />
+                <motion.div
+                  className="absolute w-[400px] h-[400px] border border-primary/10 rounded-full"
+                  animate={{ 
+                    rotate: -360,
+                    scale: [1, 0.95, 1]
+                  }}
+                  transition={{ 
+                    rotate: { duration: 25, repeat: Infinity, ease: "linear" },
+                    scale: { duration: 3, repeat: Infinity, ease: "easeInOut" }
+                  }}
                 />
               </div>
 
               {/* Step Indicators Around Circle */}
-              <div className="relative w-96 h-96 mx-auto">
+              <div className="relative w-[500px] h-[500px] mx-auto">
                 {steps.map((step, index) => {
                   const angle = (index * 360) / steps.length;
                   const isActive = index === currentStep;
@@ -183,99 +181,196 @@ export const HowItWorks: React.FC = () => {
                   return (
                     <motion.div
                       key={index}
-                      className="absolute w-16 h-16 flex items-center justify-center"
+                      className="absolute w-20 h-20 flex items-center justify-center cursor-pointer"
                       style={{
                         left: '50%',
                         top: '50%',
-                        transform: `translate(-50%, -50%) rotate(${angle}deg) translateY(-180px) rotate(-${angle}deg)`,
+                        transform: `translate(-50%, -50%) rotate(${angle}deg) translateY(-230px) rotate(-${angle}deg)`,
                       }}
                       animate={{
-                        scale: isActive ? 1.3 : isPrevious || isNext ? 1.1 : 1,
-                        zIndex: isActive ? 10 : 1,
+                        scale: isActive ? 1.4 : isPrevious || isNext ? 1.2 : 1,
+                        zIndex: isActive ? 20 : isPrevious || isNext ? 15 : 10,
                       }}
-                      transition={{ duration: 0.3 }}
+                      transition={{ 
+                        duration: 0.5,
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 30
+                      }}
+                      onClick={() => goToStep(index)}
                     >
                       <motion.div
-                        className={`w-full h-full rounded-full flex items-center justify-center shadow-lg ${
+                        className={`w-full h-full rounded-full flex items-center justify-center shadow-2xl relative overflow-hidden ${
                           isActive ? step.color : 'bg-gray-300 dark:bg-gray-600'
                         }`}
                         animate={{
                           boxShadow: isActive 
-                            ? '0 0 30px rgba(247, 181, 0, 0.5)' 
-                            : '0 4px 6px rgba(0, 0, 0, 0.1)',
+                            ? '0 0 40px rgba(247, 181, 0, 0.6), 0 0 80px rgba(247, 181, 0, 0.3)' 
+                            : '0 8px 25px rgba(0, 0, 0, 0.15)',
                         }}
-                        whileHover={{ scale: 1.1 }}
-                        onClick={() => setCurrentStep(index)}
+                        whileHover={{ 
+                          scale: 1.1,
+                          boxShadow: '0 0 30px rgba(247, 181, 0, 0.4)'
+                        }}
                       >
+                        {/* Animated Background Gradient */}
+                        {isActive && (
+                          <motion.div
+                            className={`absolute inset-0 bg-gradient-to-r ${step.gradient} opacity-90`}
+                            animate={{
+                              background: [
+                                `linear-gradient(45deg, ${step.color}, ${step.color}dd)`,
+                                `linear-gradient(135deg, ${step.color}, ${step.color}aa)`,
+                                `linear-gradient(225deg, ${step.color}, ${step.color}dd)`,
+                                `linear-gradient(315deg, ${step.color}, ${step.color}aa)`,
+                                `linear-gradient(45deg, ${step.color}, ${step.color}dd)`,
+                              ]
+                            }}
+                            transition={{ duration: 3, repeat: Infinity }}
+                          />
+                        )}
+                        
                         <motion.div
+                          className="relative z-10"
                           animate={{
                             color: isActive ? '#ffffff' : '#6b7280',
-                            scale: isActive ? 1.2 : 1,
+                            scale: isActive ? 1.3 : 1,
+                            rotate: isActive ? [0, 360] : 0,
+                          }}
+                          transition={{
+                            rotate: { duration: 2, repeat: Infinity, ease: "linear" }
                           }}
                         >
                           {React.cloneElement(step.icon, { 
-                            className: "w-6 h-6" 
+                            className: "w-8 h-8" 
                           })}
                         </motion.div>
+                        
+                        {/* Pulse Effect for Active Step */}
+                        {isActive && (
+                          <motion.div
+                            className="absolute inset-0 rounded-full border-4 border-white/30"
+                            animate={{
+                              scale: [1, 1.3, 1],
+                              opacity: [0.7, 0, 0.7],
+                            }}
+                            transition={{
+                              duration: 2,
+                              repeat: Infinity,
+                              ease: "easeInOut"
+                            }}
+                          />
+                        )}
                       </motion.div>
                       
-                      {/* Step Number */}
+                      {/* Step Number with Enhanced Animation */}
                       <motion.div
-                        className="absolute -top-2 -right-2 w-6 h-6 bg-white dark:bg-gray-800 border-2 border-primary rounded-full flex items-center justify-center text-xs font-bold text-primary"
+                        className="absolute -top-3 -right-3 w-8 h-8 bg-white dark:bg-gray-800 border-3 border-primary rounded-full flex items-center justify-center text-sm font-bold text-primary shadow-lg"
                         animate={{
-                          scale: isActive ? 1.2 : 1,
+                          scale: isActive ? 1.3 : 1,
+                          rotate: isActive ? [0, 360] : 0,
+                          borderColor: isActive ? '#F7B500' : '#F7B500',
+                        }}
+                        transition={{
+                          rotate: { duration: 3, repeat: Infinity, ease: "linear" }
                         }}
                       >
                         {index + 1}
                       </motion.div>
+
+                      {/* Step Title (appears on hover or when active) */}
+                      <AnimatePresence>
+                        {(isActive || isPrevious || isNext) && (
+                          <motion.div
+                            className="absolute top-full mt-4 left-1/2 transform -translate-x-1/2 bg-white dark:bg-gray-800 px-3 py-1 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 whitespace-nowrap"
+                            initial={{ opacity: 0, y: -10, scale: 0.8 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -10, scale: 0.8 }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            <p className="text-xs font-semibold text-gray-800 dark:text-gray-200">
+                              {step.title}
+                            </p>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </motion.div>
                   );
                 })}
               </div>
 
-              {/* Center Content */}
+              {/* Center Content with Enhanced Animation */}
               <div className="absolute inset-0 flex items-center justify-center">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={currentStep}
-                    className="text-center max-w-sm bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700"
-                    initial={{ opacity: 0, scale: 0.8, rotateY: 90 }}
+                    className="text-center max-w-sm bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-2xl border-2 border-gray-100 dark:border-gray-700 relative overflow-hidden"
+                    initial={{ opacity: 0, scale: 0.7, rotateY: 90 }}
                     animate={{ opacity: 1, scale: 1, rotateY: 0 }}
-                    exit={{ opacity: 0, scale: 0.8, rotateY: -90 }}
-                    transition={{ duration: 0.5 }}
+                    exit={{ opacity: 0, scale: 0.7, rotateY: -90 }}
+                    transition={{ 
+                      duration: 0.6,
+                      type: "spring",
+                      stiffness: 300,
+                      damping: 30
+                    }}
                   >
+                    {/* Animated Background */}
                     <motion.div
-                      className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r ${steps[currentStep].gradient} flex items-center justify-center`}
+                      className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10"
+                      animate={{
+                        background: [
+                          'linear-gradient(45deg, rgba(247, 181, 0, 0.05), transparent, rgba(247, 181, 0, 0.1))',
+                          'linear-gradient(135deg, rgba(247, 181, 0, 0.1), transparent, rgba(247, 181, 0, 0.05))',
+                          'linear-gradient(225deg, rgba(247, 181, 0, 0.05), transparent, rgba(247, 181, 0, 0.1))',
+                          'linear-gradient(315deg, rgba(247, 181, 0, 0.1), transparent, rgba(247, 181, 0, 0.05))',
+                        ]
+                      }}
+                      transition={{ duration: 4, repeat: Infinity }}
+                    />
+                    
+                    <motion.div
+                      className={`relative z-10 w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-r ${steps[currentStep].gradient} flex items-center justify-center`}
                       animate={{
                         rotate: [0, 360],
                         scale: [1, 1.1, 1],
                       }}
                       transition={{
-                        rotate: { duration: 2, repeat: Infinity, ease: "linear" },
-                        scale: { duration: 1, repeat: Infinity, ease: "easeInOut" },
+                        rotate: { duration: 3, repeat: Infinity, ease: "linear" },
+                        scale: { duration: 2, repeat: Infinity, ease: "easeInOut" },
                       }}
                     >
                       {steps[currentStep].icon}
                     </motion.div>
                     
-                    <h3 className="text-xl font-bold mb-3 dark:text-white">
+                    <motion.h3 
+                      className="text-2xl font-bold mb-4 dark:text-white"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.2 }}
+                    >
                       {steps[currentStep].title}
-                    </h3>
+                    </motion.h3>
                     
-                    <p className="text-gray-600 dark:text-gray-300 mb-4 text-sm">
+                    <motion.p 
+                      className="text-gray-600 dark:text-gray-300 mb-6 text-sm leading-relaxed"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.3 }}
+                    >
                       {steps[currentStep].description}
-                    </p>
+                    </motion.p>
                     
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {steps[currentStep].details.map((detail, index) => (
                         <motion.div
                           key={index}
-                          className="flex items-center text-xs text-gray-500 dark:text-gray-400"
+                          className="flex items-center text-sm text-gray-500 dark:text-gray-400"
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
-                          transition={{ duration: 0.3, delay: index * 0.1 }}
+                          transition={{ duration: 0.4, delay: 0.4 + (index * 0.1) }}
                         >
-                          <CheckCircle2 className="w-3 h-3 text-success mr-2 flex-shrink-0" />
+                          <CheckCircle2 className="w-4 h-4 text-success mr-3 flex-shrink-0" />
                           <span>{detail}</span>
                         </motion.div>
                       ))}
@@ -284,40 +379,97 @@ export const HowItWorks: React.FC = () => {
                 </AnimatePresence>
               </div>
 
-              {/* Navigation Arrows */}
+              {/* Enhanced Navigation Arrows */}
               <motion.button
                 onClick={prevStep}
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white dark:bg-gray-800 p-3 rounded-full shadow-lg hover:shadow-xl transition-shadow"
-                whileHover={{ scale: 1.1, x: -5 }}
+                className="absolute left-8 top-1/2 transform -translate-y-1/2 bg-white dark:bg-gray-800 p-4 rounded-full shadow-xl hover:shadow-2xl transition-all border-2 border-gray-100 dark:border-gray-700 group"
+                whileHover={{ 
+                  scale: 1.1, 
+                  x: -8,
+                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)'
+                }}
                 whileTap={{ scale: 0.9 }}
+                initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.5 }}
               >
-                <ArrowRight className="w-5 h-5 text-gray-600 dark:text-gray-300 rotate-180" />
+                <ChevronLeft className="w-6 h-6 text-gray-600 dark:text-gray-300 group-hover:text-primary transition-colors" />
               </motion.button>
               
               <motion.button
                 onClick={nextStep}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white dark:bg-gray-800 p-3 rounded-full shadow-lg hover:shadow-xl transition-shadow"
-                whileHover={{ scale: 1.1, x: 5 }}
+                className="absolute right-8 top-1/2 transform -translate-y-1/2 bg-white dark:bg-gray-800 p-4 rounded-full shadow-xl hover:shadow-2xl transition-all border-2 border-gray-100 dark:border-gray-700 group"
+                whileHover={{ 
+                  scale: 1.1, 
+                  x: 8,
+                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)'
+                }}
                 whileTap={{ scale: 0.9 }}
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.5 }}
               >
-                <ArrowRight className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                <ChevronRight className="w-6 h-6 text-gray-600 dark:text-gray-300 group-hover:text-primary transition-colors" />
               </motion.button>
             </div>
 
-            {/* Progress Bar */}
-            <div className="mt-12 max-w-md mx-auto">
-              <div className="bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-                <motion.div
-                  className="h-full bg-gradient-to-r from-primary to-primary-600"
-                  animate={{
-                    width: `${((currentStep + 1) / steps.length) * 100}%`,
-                  }}
-                  transition={{ duration: 0.3 }}
-                />
+            {/* Enhanced Progress Indicators */}
+            <div className="mt-16 max-w-2xl mx-auto">
+              <div className="flex justify-center space-x-3 mb-6">
+                {steps.map((_, index) => (
+                  <motion.button
+                    key={index}
+                    onClick={() => goToStep(index)}
+                    className={`relative overflow-hidden rounded-full transition-all duration-300 ${
+                      index === currentStep 
+                        ? 'w-12 h-4 bg-primary' 
+                        : 'w-4 h-4 bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
+                    }`}
+                    whileHover={{ scale: 1.2 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    {index === currentStep && (
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-primary-400 to-primary-600"
+                        animate={{
+                          x: ['-100%', '100%'],
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: "linear"
+                        }}
+                      />
+                    )}
+                  </motion.button>
+                ))}
               </div>
-              <div className="flex justify-between mt-2 text-sm text-gray-500 dark:text-gray-400">
-                <span>Step {currentStep + 1}</span>
-                <span>{steps.length} Steps Total</span>
+              
+              <div className="text-center">
+                <motion.p 
+                  className="text-gray-500 dark:text-gray-400 text-sm"
+                  key={currentStep}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  Step {currentStep + 1} of {steps.length}
+                </motion.p>
+                
+                {/* Auto-play indicator */}
+                {isAutoPlaying && (
+                  <motion.div
+                    className="mt-2 w-32 h-1 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto overflow-hidden"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                  >
+                    <motion.div
+                      className="h-full bg-primary rounded-full"
+                      animate={{ width: ['0%', '100%'] }}
+                      transition={{ duration: 4, repeat: Infinity }}
+                    />
+                  </motion.div>
+                )}
               </div>
             </div>
           </div>

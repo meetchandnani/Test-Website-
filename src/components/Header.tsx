@@ -61,7 +61,7 @@ export const Header: React.FC = () => {
           onClick={scrollToTop}
         >
           <img 
-            src={isDark ? "/logo-big-white-2 copy.png" : "/WhatsApp Image 2025-01-14 at 22.37.16-Photoroom.png"}
+            src="/WhatsApp Image 2025-01-14 at 22.37.16-Photoroom.png"
             alt="MyHisaab" 
             className="h-8"
           />

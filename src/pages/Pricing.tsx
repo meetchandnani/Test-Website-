@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, X, CreditCard, Wallet, Users, Calculator } from 'lucide-react';
+import { Check, X, CreditCard, Wallet, Users, Calculator, Tag, Percent } from 'lucide-react';
 
 declare global {
   interface Window {
@@ -47,18 +47,29 @@ const plans = [
   },
 ];
 
+const coupons = {
+  'HISAAB20': { discount: 20, description: '20% off' },
+  'HISAAB10': { discount: 10, description: '10% off' },
+  'HISAAB30': { discount: 30, description: '30% off' },
+  'HISAAB40': { discount: 40, description: '40% off' },
+  'HISAAB50': { discount: 50, description: '50% off' },
+};
+
 export const Pricing: React.FC = () => {
   const [isYearly, setIsYearly] = useState(true);
   const [selectedPlan, setSelectedPlan] = useState<number | null>(null);
   const [employeeCount, setEmployeeCount] = useState(5);
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+  const [couponError, setCouponError] = useState('');
 
   const calculatePrice = (plan: any, employees: number) => {
     if (isYearly) {
       return plan.yearlyPrice * employees;
     } else {
-      // Monthly calculation - FIXED
+      // Monthly calculation - FIXED: Basic plan is flat rate, Professional is per employee
       if (plan.isFlat) {
-        return plan.monthlyPrice; // ₹150 flat for Basic
+        return plan.monthlyPrice; // ₹150 flat for Basic regardless of employee count
       } else {
         return plan.monthlyPrice * employees; // ₹300 per employee for Professional
       }
@@ -85,19 +96,53 @@ export const Pricing: React.FC = () => {
     }
   };
 
+  const applyCoupon = () => {
+    const upperCoupon = couponCode.toUpperCase();
+    if (coupons[upperCoupon as keyof typeof coupons]) {
+      setAppliedCoupon(upperCoupon);
+      setCouponError('');
+    } else {
+      setCouponError('Invalid coupon code');
+      setAppliedCoupon(null);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode('');
+    setCouponError('');
+  };
+
+  const getFinalPrice = (plan: any, employees: number) => {
+    const basePrice = calculatePrice(plan, employees);
+    if (appliedCoupon && coupons[appliedCoupon as keyof typeof coupons]) {
+      const discount = coupons[appliedCoupon as keyof typeof coupons].discount;
+      return basePrice - (basePrice * discount / 100);
+    }
+    return basePrice;
+  };
+
+  const getDiscountAmount = (plan: any, employees: number) => {
+    const basePrice = calculatePrice(plan, employees);
+    const finalPrice = getFinalPrice(plan, employees);
+    return basePrice - finalPrice;
+  };
+
   const handlePayment = (plan: any, method: 'card' | 'upi') => {
-    const totalAmount = calculatePrice(plan, employeeCount);
+    const finalAmount = getFinalPrice(plan, employeeCount);
     
     const options = {
       key: 'rzp_live_48budavqkFEuRM',
-      amount: totalAmount * 100,
+      amount: finalAmount * 100,
       currency: 'INR',
       name: 'MyHisaab',
-      description: `${plan.name} - ${employeeCount} employees - ${isYearly ? 'yearly' : 'monthly'}`,
+      description: `${plan.name} - ${employeeCount} employees - ${isYearly ? 'yearly' : 'monthly'}${appliedCoupon ? ` (${appliedCoupon} applied)` : ''}`,
       image: '/WhatsApp Image 2025-01-14 at 22.37.16-Photoroom.png',
       handler: function (response: any) {
         alert(`Payment successful! Payment ID: ${response.razorpay_payment_id}`);
         setSelectedPlan(null);
+        setAppliedCoupon(null);
+        setCouponCode('');
       },
       prefill: {
         name: '',
@@ -107,7 +152,8 @@ export const Pricing: React.FC = () => {
       notes: {
         plan: plan.name,
         billing: isYearly ? 'yearly' : 'monthly',
-        employees: employeeCount.toString()
+        employees: employeeCount.toString(),
+        coupon: appliedCoupon || 'none'
       },
       theme: {
         color: '#F7B500'
@@ -335,27 +381,98 @@ export const Pricing: React.FC = () => {
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
             onClick={(e) => {
-              if (e.target === e.currentTarget) setSelectedPlan(null);
+              if (e.target === e.currentTarget) {
+                setSelectedPlan(null);
+                setAppliedCoupon(null);
+                setCouponCode('');
+                setCouponError('');
+              }
             }}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white dark:bg-gray-800 rounded-3xl p-8 max-w-md w-full shadow-xl"
+              className="bg-white dark:bg-gray-800 rounded-3xl p-8 max-w-md w-full shadow-xl max-h-[90vh] overflow-y-auto"
             >
               <h3 className="text-2xl font-bold mb-4 dark:text-white">Complete Your Subscription</h3>
+              
+              {/* Coupon Code Section */}
+              <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl">
+                <div className="flex items-center mb-3">
+                  <Tag className="w-5 h-5 text-primary mr-2" />
+                  <h4 className="font-semibold dark:text-white">Have a Coupon Code?</h4>
+                </div>
+                
+                {!appliedCoupon ? (
+                  <div className="space-y-3">
+                    <div className="flex space-x-2">
+                      <input
+                        type="text"
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value)}
+                        placeholder="Enter coupon code"
+                        className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary focus:border-primary dark:bg-gray-600 dark:text-white text-sm"
+                      />
+                      <button
+                        onClick={applyCoupon}
+                        className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors text-sm font-medium"
+                      >
+                        Apply
+                      </button>
+                    </div>
+                    {couponError && (
+                      <p className="text-red-500 text-xs">{couponError}</p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between bg-green-50 dark:bg-green-900/30 p-3 rounded-lg">
+                    <div className="flex items-center">
+                      <Percent className="w-4 h-4 text-green-600 mr-2" />
+                      <span className="text-green-700 dark:text-green-300 font-medium text-sm">
+                        {appliedCoupon} - {coupons[appliedCoupon as keyof typeof coupons].description}
+                      </span>
+                    </div>
+                    <button
+                      onClick={removeCoupon}
+                      className="text-red-500 hover:text-red-700 text-sm"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+              </div>
+
               <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl">
                 <h4 className="font-semibold text-lg dark:text-white">{plans[selectedPlan].name}</h4>
-                <p className="text-gray-600 dark:text-gray-300">
-                  ₹{calculatePrice(plans[selectedPlan], employeeCount).toLocaleString()} {isYearly ? 'per year' : 'per month'}
-                </p>
-                <p className="text-sm text-primary mt-1">For {employeeCount} employees</p>
-                {!isYearly && plans[selectedPlan].isFlat && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    (Flat rate for Basic Plan)
-                  </p>
-                )}
+                
+                <div className="space-y-2 mt-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 dark:text-gray-300">Base Price:</span>
+                    <span className="font-medium dark:text-white">
+                      ₹{calculatePrice(plans[selectedPlan], employeeCount).toLocaleString()}
+                    </span>
+                  </div>
+                  
+                  {appliedCoupon && (
+                    <div className="flex justify-between items-center text-green-600 dark:text-green-400">
+                      <span>Discount ({coupons[appliedCoupon as keyof typeof coupons].description}):</span>
+                      <span>-₹{getDiscountAmount(plans[selectedPlan], employeeCount).toLocaleString()}</span>
+                    </div>
+                  )}
+                  
+                  <div className="border-t border-gray-200 dark:border-gray-600 pt-2">
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold dark:text-white">Total:</span>
+                      <span className="text-2xl font-bold text-primary">
+                        ₹{getFinalPrice(plans[selectedPlan], employeeCount).toLocaleString()}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 text-right">
+                      {isYearly ? 'per year' : 'per month'} for {employeeCount} employees
+                    </p>
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-4 mb-6">
@@ -382,7 +499,12 @@ export const Pricing: React.FC = () => {
 
               <div className="flex justify-end">
                 <motion.button
-                  onClick={() => setSelectedPlan(null)}
+                  onClick={() => {
+                    setSelectedPlan(null);
+                    setAppliedCoupon(null);
+                    setCouponCode('');
+                    setCouponError('');
+                  }}
                   className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -427,7 +549,7 @@ export const Pricing: React.FC = () => {
               },
               {
                 q: "What payment methods do you accept?",
-                a: "We accept all major credit cards, debit cards, and UPI payments,Netbanking through our secure Razorpay integration."
+                a: "We accept all major credit cards, debit cards, and UPI payments, Netbanking through our secure Razorpay integration."
               }
             ].map((faq, index) => (
               <motion.div
