@@ -85,8 +85,8 @@ export const HowItWorks: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
-  useEffect(() => {
-    if (!isAutoPlaying) return;
+return () => clearInterval(interval);
+  }, [isAutoPlaying]);
 
     const interval = setInterval(() => {
       setCurrentStep((prev) => (prev + 1) % steps.length);
