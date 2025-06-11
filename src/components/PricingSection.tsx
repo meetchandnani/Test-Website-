@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Star, Users, Calculator, CreditCard, Wallet, X, Tag, Percent, ShoppingCart } from 'lucide-react';
-import { useCart } from './CartContext';
+import { Check, Star, Users, Calculator, CreditCard, Wallet, X, Tag, Percent } from 'lucide-react';
 
 declare global {
   interface Window {
@@ -15,7 +14,6 @@ const plans = [
     monthlyPrice: 150,
     yearlyPrice: 600,
     description: 'Perfect for small businesses and startups',
-    isFlat: false, // CHANGED: Basic plan is now per employee
     features: [
       'AI-based Selfie Verification',
       'WhatsApp Daily Reporting',
@@ -33,7 +31,6 @@ const plans = [
     monthlyPrice: 300,
     yearlyPrice: 1200,
     description: 'For growing teams with advanced needs',
-    isFlat: false, // Professional plan is per employee
     features: [
       'All Basic Plan Features',
       'Real time monitoring',
@@ -64,14 +61,11 @@ export const PricingSection: React.FC = () => {
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [couponError, setCouponError] = useState('');
   const [showCouponInput, setShowCouponInput] = useState(false);
-  
-  const { addToCart } = useCart();
 
   const calculatePrice = (plan: any, employees: number) => {
     if (isYearly) {
       return plan.yearlyPrice * employees;
     } else {
-      // CHANGED: Both plans are now per employee
       return plan.monthlyPrice * employees;
     }
   };
@@ -124,34 +118,8 @@ export const PricingSection: React.FC = () => {
     return basePrice - finalPrice;
   };
 
-  const handleAddToCart = (planIndex: number) => {
-    const plan = plans[planIndex];
-    const basePrice = calculatePrice(plan, employeeCount);
-    const finalPrice = getFinalPrice(plan, employeeCount);
-    
-    addToCart({
-      planIndex,
-      planName: plan.name,
-      employeeCount,
-      basePrice,
-      finalPrice,
-      billing: isYearly ? 'yearly' : 'monthly',
-      coupon: appliedCoupon || undefined,
-      discount: appliedCoupon ? getDiscountAmount(plan, employeeCount) : undefined
-    });
-
-    // Show success message
-    alert(`${plan.name} added to cart successfully!`);
-
-    // Reset coupon after adding to cart
-    setAppliedCoupon(null);
-    setCouponCode('');
-    setCouponError('');
-    setShowCouponInput(false);
-  };
-
-  const handleSubscribe = (planIndex: number) => {
-    setSelectedPlan(planIndex);
+  const handleGetStarted = () => {
+    window.open('https://app.myhisaab.com', '_blank');
   };
 
   const handlePayment = (method: 'card' | 'upi') => {
@@ -422,25 +390,14 @@ export const PricingSection: React.FC = () => {
                     </div>
                   </motion.div>
                   
-                  <div className="flex space-x-2 mb-8">
-                    <motion.button
-                      onClick={() => handleAddToCart(index)}
-                      className="flex-1 btn btn-outline flex items-center justify-center gap-2"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <ShoppingCart className="w-4 h-4" />
-                      Add to Cart
-                    </motion.button>
-                    <motion.button
-                      onClick={() => handleSubscribe(index)}
-                      className={`flex-1 btn ${plan.popular ? 'btn-primary' : 'btn-outline'}`}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      Subscribe Now
-                    </motion.button>
-                  </div>
+                  <motion.button
+                    onClick={handleGetStarted}
+                    className={`w-full btn ${plan.popular ? 'btn-primary' : 'btn-outline'} mb-8`}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    Get Started
+                  </motion.button>
 
                   <div className="space-y-4">
                     {plan.features.map((feature, fIndex) => (

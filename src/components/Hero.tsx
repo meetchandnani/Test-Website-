@@ -8,6 +8,10 @@ export const Hero: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleGetStartedClick = () => {
+    window.open('https://app.myhisaab.com', '_blank');
+  };
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 pt-20 pb-32">
       <div className="container">
@@ -73,15 +77,14 @@ export const Hero: React.FC = () => {
             </motion.div>
             
             <div className="flex flex-col sm:flex-row gap-4 mb-10">
-              <motion.Link 
-                to="/pricing" 
+              <motion.button 
+                onClick={handleGetStartedClick}
                 className="btn btn-primary"
-                onClick={scrollToTop}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
                 Start Free Trial
-              </motion.Link>
+              </motion.button>
               <motion.Link 
                 to="/contact" 
                 className="btn btn-outline"
