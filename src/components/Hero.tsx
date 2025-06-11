@@ -1,8 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle2, Zap, Wifi, WifiOff } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export const Hero: React.FC = () => {
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 pt-20 pb-32">
       <div className="container">
@@ -68,22 +73,24 @@ export const Hero: React.FC = () => {
             </motion.div>
             
             <div className="flex flex-col sm:flex-row gap-4 mb-10">
-              <motion.a 
-                href="#pricing" 
+              <motion.Link 
+                to="/pricing" 
                 className="btn btn-primary"
+                onClick={scrollToTop}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
                 Start Free Trial
-              </motion.a>
-              <motion.a 
-                href="#demo" 
+              </motion.Link>
+              <motion.Link 
+                to="/contact" 
                 className="btn btn-outline"
+                onClick={scrollToTop}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
                 Schedule Demo
-              </motion.a>
+              </motion.Link>
             </div>
             
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
@@ -92,21 +99,21 @@ export const Hero: React.FC = () => {
                 whileHover={{ x: 5 }}
               >
                 <CheckCircle2 size={20} className="text-primary" />
-                <span className="text-gray-5000 dark:text-gray-300">Whatsapp reporting</span>
+                <span className="text-gray-600 dark:text-gray-300">Whatsapp reporting</span>
               </motion.div>
               <motion.div 
                 className="flex items-center gap-2"
                 whileHover={{ x: 5 }}
               >
                 <CheckCircle2 size={20} className="text-primary" />
-                <span className="text-gray-5000 dark:text-gray-300">Offline tracking</span>
+                <span className="text-gray-600 dark:text-gray-300">Offline tracking</span>
               </motion.div>
               <motion.div 
                 className="flex items-center gap-2"
                 whileHover={{ x: 5 }}
               >
                 <CheckCircle2 size={20} className="text-primary" />
-                <span className="text-gray-5000 dark:text-gray-300">Task Manager</span>
+                <span className="text-gray-600 dark:text-gray-300">Task Manager</span>
               </motion.div>
             </div>
           </motion.div>

@@ -1,11 +1,22 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Star, Users, Calculator, CreditCard, Wallet, X, Tag, Percent } from 'lucide-react';
+import { Check, Star, Users, Calculator, CreditCard, Wallet, X, Tag, Percent, ShoppingCart, Plus, Minus } from 'lucide-react';
 
 declare global {
   interface Window {
     Razorpay: any;
   }
+}
+
+interface CartItem {
+  planIndex: number;
+  planName: string;
+  employeeCount: number;
+  basePrice: number;
+  finalPrice: number;
+  billing: 'monthly' | 'yearly';
+  coupon?: string;
+  discount?: number;
 }
 
 const plans = [
@@ -62,6 +73,9 @@ export const PricingSection: React.FC = () => {
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [couponError, setCouponError] = useState('');
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [showCart, setShowCart] = useState(false);
+  const [showCouponInput, setShowCouponInput] = useState(false);
 
   const calculatePrice = (plan: any, employees: number) => {
     if (isYearly) {
@@ -128,21 +142,51 @@ export const PricingSection: React.FC = () => {
     return basePrice - finalPrice;
   };
 
-  const handlePayment = (plan: any, method: 'card' | 'upi') => {
-    const finalAmount = getFinalPrice(plan, employeeCount);
+  const addToCart = (planIndex: number) => {
+    const plan = plans[planIndex];
+    const basePrice = calculatePrice(plan, employeeCount);
+    const finalPrice = getFinalPrice(plan, employeeCount);
+    
+    const cartItem: CartItem = {
+      planIndex,
+      planName: plan.name,
+      employeeCount,
+      basePrice,
+      finalPrice,
+      billing: isYearly ? 'yearly' : 'monthly',
+      coupon: appliedCoupon || undefined,
+      discount: appliedCoupon ? getDiscountAmount(plan, employeeCount) : undefined
+    };
+
+    setCart([...cart, cartItem]);
+    setAppliedCoupon(null);
+    setCouponCode('');
+    setCouponError('');
+    setShowCouponInput(false);
+  };
+
+  const removeFromCart = (index: number) => {
+    setCart(cart.filter((_, i) => i !== index));
+  };
+
+  const getTotalCartValue = () => {
+    return cart.reduce((total, item) => total + item.finalPrice, 0);
+  };
+
+  const handlePayment = (method: 'card' | 'upi') => {
+    const totalAmount = getTotalCartValue();
     
     const options = {
       key: 'rzp_live_48budavqkFEuRM',
-      amount: finalAmount * 100,
+      amount: totalAmount * 100,
       currency: 'INR',
       name: 'MyHisaab',
-      description: `${plan.name} - ${employeeCount} employees - ${isYearly ? 'yearly' : 'monthly'}${appliedCoupon ? ` (${appliedCoupon} applied)` : ''}`,
+      description: `Cart Items: ${cart.length} plan(s)`,
       image: '/WhatsApp Image 2025-01-14 at 22.37.16-Photoroom.png',
       handler: function (response: any) {
         alert(`Payment successful! Payment ID: ${response.razorpay_payment_id}`);
-        setSelectedPlan(null);
-        setAppliedCoupon(null);
-        setCouponCode('');
+        setCart([]);
+        setShowCart(false);
       },
       prefill: {
         name: '',
@@ -150,10 +194,12 @@ export const PricingSection: React.FC = () => {
         contact: ''
       },
       notes: {
-        plan: plan.name,
-        billing: isYearly ? 'yearly' : 'monthly',
-        employees: employeeCount.toString(),
-        coupon: appliedCoupon || 'none'
+        cartItems: JSON.stringify(cart.map(item => ({
+          plan: item.planName,
+          employees: item.employeeCount,
+          billing: item.billing,
+          coupon: item.coupon || 'none'
+        })))
       },
       theme: {
         color: '#F7B500'
@@ -185,6 +231,23 @@ export const PricingSection: React.FC = () => {
             <p className="section-subtitle dark:text-gray-300">
               Transparent pricing with no hidden fees. Scale your plan as your business grows.
             </p>
+          </div>
+
+          {/* Cart Button */}
+          <div className="fixed top-20 right-4 z-40">
+            <motion.button
+              onClick={() => setShowCart(true)}
+              className="bg-primary text-white p-3 rounded-full shadow-lg hover:bg-primary-600 transition-colors relative"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <ShoppingCart className="w-6 h-6" />
+              {cart.length > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center">
+                  {cart.length}
+                </span>
+              )}
+            </motion.button>
           </div>
 
           {/* Billing Toggle */}
@@ -262,6 +325,73 @@ export const PricingSection: React.FC = () => {
             </p>
           </motion.div>
 
+          {/* Subtle Coupon Code Section */}
+          <motion.div
+            className="max-w-md mx-auto mb-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          >
+            <div className="text-center">
+              <motion.button
+                onClick={() => setShowCouponInput(!showCouponInput)}
+                className="text-sm text-gray-500 dark:text-gray-400 hover:text-primary transition-colors underline"
+                whileHover={{ scale: 1.05 }}
+              >
+                Have a coupon code?
+              </motion.button>
+            </div>
+            
+            <AnimatePresence>
+              {showCouponInput && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mt-4 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700"
+                >
+                  {!appliedCoupon ? (
+                    <div className="space-y-3">
+                      <div className="flex space-x-2">
+                        <input
+                          type="text"
+                          value={couponCode}
+                          onChange={(e) => setCouponCode(e.target.value)}
+                          placeholder="Enter coupon code"
+                          className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white text-sm"
+                        />
+                        <button
+                          onClick={applyCoupon}
+                          className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors text-sm font-medium"
+                        >
+                          Apply
+                        </button>
+                      </div>
+                      {couponError && (
+                        <p className="text-red-500 text-xs">{couponError}</p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between bg-green-50 dark:bg-green-900/30 p-3 rounded-lg">
+                      <div className="flex items-center">
+                        <Percent className="w-4 h-4 text-green-600 mr-2" />
+                        <span className="text-green-700 dark:text-green-300 font-medium text-sm">
+                          {appliedCoupon} - {coupons[appliedCoupon as keyof typeof coupons].description}
+                        </span>
+                      </div>
+                      <button
+                        onClick={removeCoupon}
+                        className="text-red-500 hover:text-red-700 text-sm"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
             {plans.map((plan, index) => (
               <motion.div
@@ -309,7 +439,7 @@ export const PricingSection: React.FC = () => {
                       </div>
                       <div className="text-center">
                         <span className="text-2xl font-bold text-primary">
-                          ₹{calculatePrice(plan, employeeCount).toLocaleString()}
+                          ₹{getFinalPrice(plan, employeeCount).toLocaleString()}
                         </span>
                         <span className="text-gray-500 dark:text-gray-400 ml-2">
                           {isYearly ? 'per year' : 'per month'}
@@ -323,17 +453,33 @@ export const PricingSection: React.FC = () => {
                           (Flat rate regardless of employee count)
                         </p>
                       )}
+                      {appliedCoupon && (
+                        <p className="text-xs text-green-600 dark:text-green-400 text-center mt-1">
+                          Discount: ₹{getDiscountAmount(plan, employeeCount).toLocaleString()}
+                        </p>
+                      )}
                     </div>
                   </motion.div>
                   
-                  <motion.button
-                    onClick={() => setSelectedPlan(index)}
-                    className={`w-full btn ${plan.popular ? 'btn-primary' : 'btn-outline'} mb-8`}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    Subscribe Now
-                  </motion.button>
+                  <div className="flex space-x-2 mb-8">
+                    <motion.button
+                      onClick={() => addToCart(index)}
+                      className="flex-1 btn btn-outline flex items-center justify-center gap-2"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <ShoppingCart className="w-4 h-4" />
+                      Add to Cart
+                    </motion.button>
+                    <motion.button
+                      onClick={() => setSelectedPlan(index)}
+                      className={`flex-1 btn ${plan.popular ? 'btn-primary' : 'btn-outline'}`}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      Subscribe Now
+                    </motion.button>
+                  </div>
 
                   <div className="space-y-4">
                     {plan.features.map((feature, fIndex) => (
@@ -360,6 +506,109 @@ export const PricingSection: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Cart Modal */}
+      <AnimatePresence>
+        {showCart && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowCart(false);
+              }
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white dark:bg-gray-800 rounded-3xl p-8 max-w-2xl w-full shadow-xl max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-bold dark:text-white">Shopping Cart</h3>
+                <button
+                  onClick={() => setShowCart(false)}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              {cart.length === 0 ? (
+                <div className="text-center py-12">
+                  <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400">Your cart is empty</p>
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-4 mb-6">
+                    {cart.map((item, index) => (
+                      <div key={index} className="bg-gray-50 dark:bg-gray-700 p-4 rounded-xl">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <h4 className="font-semibold dark:text-white">{item.planName}</h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-300">
+                              {item.employeeCount} employees • {item.billing}
+                            </p>
+                            {item.coupon && (
+                              <p className="text-sm text-green-600 dark:text-green-400">
+                                Coupon: {item.coupon} (-₹{item.discount?.toLocaleString()})
+                              </p>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-primary">₹{item.finalPrice.toLocaleString()}</p>
+                            <button
+                              onClick={() => removeFromCart(index)}
+                              className="text-red-500 hover:text-red-700 text-sm mt-1"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="border-t border-gray-200 dark:border-gray-600 pt-4 mb-6">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xl font-bold dark:text-white">Total:</span>
+                      <span className="text-2xl font-bold text-primary">
+                        ₹{getTotalCartValue().toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <motion.button
+                      onClick={() => handlePayment('card')}
+                      className="w-full btn btn-primary flex items-center justify-center gap-2"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <CreditCard className="w-5 h-5" />
+                      Pay with Card
+                    </motion.button>
+                    
+                    <motion.button
+                      onClick={() => handlePayment('upi')}
+                      className="w-full btn btn-outline flex items-center justify-center gap-2"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <Wallet className="w-5 h-5" />
+                      Pay with UPI
+                    </motion.button>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Payment Modal */}
       <AnimatePresence>
@@ -509,7 +758,48 @@ export const PricingSection: React.FC = () => {
               {/* Payment Buttons */}
               <div className="space-y-4">
                 <motion.button
-                  onClick={() => handlePayment(plans[selectedPlan], 'card')}
+                  onClick={() => {
+                    const plan = plans[selectedPlan];
+                    const finalAmount = getFinalPrice(plan, employeeCount);
+                    
+                    const options = {
+                      key: 'rzp_live_48budavqkFEuRM',
+                      amount: finalAmount * 100,
+                      currency: 'INR',
+                      name: 'MyHisaab',
+                      description: `${plan.name} - ${employeeCount} employees - ${isYearly ? 'yearly' : 'monthly'}${appliedCoupon ? ` (${appliedCoupon} applied)` : ''}`,
+                      image: '/WhatsApp Image 2025-01-14 at 22.37.16-Photoroom.png',
+                      handler: function (response: any) {
+                        alert(`Payment successful! Payment ID: ${response.razorpay_payment_id}`);
+                        setSelectedPlan(null);
+                        setAppliedCoupon(null);
+                        setCouponCode('');
+                      },
+                      prefill: {
+                        name: '',
+                        email: '',
+                        contact: ''
+                      },
+                      notes: {
+                        plan: plan.name,
+                        billing: isYearly ? 'yearly' : 'monthly',
+                        employees: employeeCount.toString(),
+                        coupon: appliedCoupon || 'none'
+                      },
+                      theme: {
+                        color: '#F7B500'
+                      },
+                      method: {
+                        card: true,
+                        upi: false,
+                        netbanking: false,
+                        wallet: false
+                      }
+                    };
+
+                    const rzp = new window.Razorpay(options);
+                    rzp.open();
+                  }}
                   className="w-full btn btn-primary flex items-center justify-center gap-2"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
@@ -519,7 +809,48 @@ export const PricingSection: React.FC = () => {
                 </motion.button>
                 
                 <motion.button
-                  onClick={() => handlePayment(plans[selectedPlan], 'upi')}
+                  onClick={() => {
+                    const plan = plans[selectedPlan];
+                    const finalAmount = getFinalPrice(plan, employeeCount);
+                    
+                    const options = {
+                      key: 'rzp_live_48budavqkFEuRM',
+                      amount: finalAmount * 100,
+                      currency: 'INR',
+                      name: 'MyHisaab',
+                      description: `${plan.name} - ${employeeCount} employees - ${isYearly ? 'yearly' : 'monthly'}${appliedCoupon ? ` (${appliedCoupon} applied)` : ''}`,
+                      image: '/WhatsApp Image 2025-01-14 at 22.37.16-Photoroom.png',
+                      handler: function (response: any) {
+                        alert(`Payment successful! Payment ID: ${response.razorpay_payment_id}`);
+                        setSelectedPlan(null);
+                        setAppliedCoupon(null);
+                        setCouponCode('');
+                      },
+                      prefill: {
+                        name: '',
+                        email: '',
+                        contact: ''
+                      },
+                      notes: {
+                        plan: plan.name,
+                        billing: isYearly ? 'yearly' : 'monthly',
+                        employees: employeeCount.toString(),
+                        coupon: appliedCoupon || 'none'
+                      },
+                      theme: {
+                        color: '#F7B500'
+                      },
+                      method: {
+                        card: false,
+                        upi: true,
+                        netbanking: false,
+                        wallet: false
+                      }
+                    };
+
+                    const rzp = new window.Razorpay(options);
+                    rzp.open();
+                  }}
                   className="w-full btn btn-outline flex items-center justify-center gap-2"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
