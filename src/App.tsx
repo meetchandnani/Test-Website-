@@ -5,6 +5,7 @@ import { CartProvider } from './contexts/CartContext';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { WhatsAppButton } from './components/WhatsAppButton';
+import { FloatingCart } from './components/FloatingCart';
 import { Home } from './pages/Home';
 import { Features } from './pages/Features';
 import { HowItWorks } from './pages/HowItWorks';
@@ -31,6 +32,7 @@ function App() {
             </main>
             <Footer />
             <WhatsAppButton />
+            <FloatingCart />
           </div>
         </Router>
       </CartProvider>
