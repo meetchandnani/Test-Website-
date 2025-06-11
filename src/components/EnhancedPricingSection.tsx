@@ -1,17 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
-import { Check, Star, Users, Calculator, ShoppingCart, Plus, CreditCard, Wallet, X, Tag, Percent } from 'lucide-react';
+import { Check, Star, Users, Calculator, ShoppingCart, Plus, Minus, Tag, Percent, ArrowRight } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { AddToCartConfirmation } from './AddToCartConfirmation';
 import { AddToCartAnimation } from './AddToCartAnimation';
 import { useNavigate } from 'react-router-dom';
-import { 
-  elegantVariants, 
-  elegantSprings, 
-  MagneticButton, 
-  RevealText,
-  ElegantGesture 
-} from './ElegantAnimations';
 
 declare global {
   interface Window {
@@ -68,6 +61,282 @@ const coupons = {
   'HISAAB30': { discount: 30, description: '30% off' },
   'HISAAB40': { discount: 40, description: '40% off' },
   'HISAAB50': { discount: 50, description: '50% off' },
+};
+
+// Professional animation variants
+const elegantVariants = {
+  pageEnter: {
+    initial: { 
+      opacity: 0, 
+      y: 60,
+      scale: 0.95,
+    },
+    animate: { 
+      opacity: 1, 
+      y: 0,
+      scale: 1,
+      transition: {
+        duration: 1.2,
+        ease: [0.25, 0.46, 0.45, 0.94],
+        staggerChildren: 0.15,
+      }
+    }
+  },
+  elegantScale: {
+    initial: { scale: 0.8, opacity: 0 },
+    animate: { 
+      scale: 1, 
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 200,
+        damping: 25,
+        mass: 1,
+      }
+    },
+    hover: {
+      scale: 1.05,
+      transition: {
+        type: "spring",
+        stiffness: 400,
+        damping: 30,
+      }
+    }
+  },
+  fadeInUp: {
+    initial: { 
+      opacity: 0, 
+      y: 40,
+      filter: "blur(4px)",
+    },
+    animate: { 
+      opacity: 1, 
+      y: 0,
+      filter: "blur(0px)",
+      transition: {
+        duration: 1,
+        ease: [0.25, 0.46, 0.45, 0.94],
+      }
+    }
+  },
+  slideIn: {
+    initial: { x: -100, opacity: 0 },
+    animate: { 
+      x: 0, 
+      opacity: 1,
+      transition: {
+        duration: 1,
+        ease: [0.25, 0.46, 0.45, 0.94],
+      }
+    }
+  },
+  pulse: {
+    animate: {
+      scale: [1, 1.05, 1],
+      opacity: [0.8, 1, 0.8],
+      transition: {
+        duration: 3,
+        repeat: Infinity,
+        ease: "easeInOut",
+      }
+    }
+  },
+  shimmer: {
+    animate: {
+      backgroundPosition: ["200% 0", "-200% 0"],
+      transition: {
+        duration: 2,
+        repeat: Infinity,
+        ease: "linear",
+      }
+    }
+  },
+  stagger: {
+    animate: {
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
+      }
+    }
+  },
+  float: {
+    animate: {
+      y: [-8, 8, -8],
+      transition: {
+        duration: 6,
+        repeat: Infinity,
+        ease: "easeInOut",
+        times: [0, 0.5, 1],
+      }
+    }
+  },
+  accordion: {
+    initial: { height: 0, opacity: 0 },
+    animate: { 
+      height: "auto", 
+      opacity: 1,
+      transition: {
+        height: {
+          duration: 0.8,
+          ease: [0.25, 0.46, 0.45, 0.94],
+        },
+        opacity: {
+          duration: 0.6,
+          delay: 0.2,
+          ease: "easeOut",
+        }
+      }
+    },
+    exit: { 
+      height: 0, 
+      opacity: 0,
+      transition: {
+        height: {
+          duration: 0.6,
+          ease: [0.55, 0.06, 0.68, 0.19],
+        },
+        opacity: {
+          duration: 0.4,
+          ease: "easeIn",
+        }
+      }
+    }
+  },
+  morphButton: {
+    initial: { borderRadius: "8px" },
+    hover: { 
+      borderRadius: "24px",
+      scale: 1.05,
+      transition: {
+        duration: 0.4,
+        ease: [0.25, 0.46, 0.45, 0.94],
+      }
+    },
+    tap: { 
+      scale: 0.98,
+      transition: {
+        duration: 0.1,
+        ease: "easeOut",
+      }
+    }
+  }
+};
+
+// Magnetic Button Component
+const MagneticButton: React.FC<{
+  children: React.ReactNode;
+  className?: string;
+  onClick?: () => void;
+}> = ({ children, className = "", onClick }) => {
+  const [mousePosition, setMousePosition] = React.useState({ x: 0, y: 0 });
+  const [isHovered, setIsHovered] = React.useState(false);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    setMousePosition({
+      x: e.clientX - centerX,
+      y: e.clientY - centerY,
+    });
+  };
+
+  return (
+    <motion.button
+      className={className}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={onClick}
+      animate={{
+        x: isHovered ? mousePosition.x * 0.1 : 0,
+        y: isHovered ? mousePosition.y * 0.1 : 0,
+        scale: isHovered ? 1.05 : 1,
+      }}
+      transition={{
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+      }}
+    >
+      {children}
+    </motion.button>
+  );
+};
+
+// Reveal Text Component
+const RevealText: React.FC<{
+  text: string;
+  className?: string;
+  delay?: number;
+}> = ({ text, className = "", delay = 0 }) => {
+  const words = text.split(" ");
+  
+  return (
+    <motion.div
+      className={className}
+      initial="initial"
+      animate="animate"
+      variants={{
+        animate: {
+          transition: {
+            staggerChildren: 0.1,
+            delayChildren: delay,
+          }
+        }
+      }}
+    >
+      {words.map((word, i) => (
+        <motion.span
+          key={i}
+          className="inline-block mr-2"
+          variants={{
+            initial: { 
+              y: 100,
+              opacity: 0,
+              skewY: 7,
+            },
+            animate: { 
+              y: 0,
+              opacity: 1,
+              skewY: 0,
+              transition: {
+                duration: 1,
+                ease: [0.25, 0.46, 0.45, 0.94],
+              }
+            }
+          }}
+        >
+          {word}
+        </motion.span>
+      ))}
+    </motion.div>
+  );
+};
+
+// Elegant Gesture Component
+const ElegantGesture: React.FC<{
+  children: React.ReactNode;
+  variant: keyof typeof elegantVariants;
+  className?: string;
+  custom?: any;
+}> = ({ children, variant, className = "", custom }) => {
+  const variants = elegantVariants[variant];
+  
+  return (
+    <motion.div
+      className={className}
+      variants={variants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      whileHover="hover"
+      whileTap="tap"
+      custom={custom}
+    >
+      {children}
+    </motion.div>
+  );
 };
 
 export const EnhancedPricingSection: React.FC = () => {
@@ -312,7 +581,11 @@ export const EnhancedPricingSection: React.FC = () => {
                     x: isYearly ? "0%" : "100%",
                     width: "50%",
                   }}
-                  transition={elegantSprings.responsive}
+                  transition={{
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 30,
+                  }}
                 />
                 <motion.button
                   className="relative px-8 py-3 text-sm font-semibold z-10 rounded-xl transition-colors"
@@ -377,7 +650,11 @@ export const EnhancedPricingSection: React.FC = () => {
                 <motion.div
                   className="bg-gradient-to-r from-primary to-primary-600 p-3 rounded-2xl mr-4"
                   whileHover={{ rotate: 5 }}
-                  transition={elegantSprings.responsive}
+                  transition={{
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 30,
+                  }}
                 >
                   <Users className="w-6 h-6 text-white" />
                 </motion.div>
@@ -524,13 +801,17 @@ export const EnhancedPricingSection: React.FC = () => {
                 }`}
                 variants={elegantVariants.elegantScale}
                 whileHover={{ y: -10, scale: plan.popular ? 1.05 : 1.02 }}
-                transition={elegantSprings.responsive}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 30,
+                }}
               >
                 {/* Popular Badge */}
                 {plan.popular && (
                   <motion.div
                     className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10"
-                    variants={elegantVariants.bounce}
+                    variants={elegantVariants.pulse}
                     animate="animate"
                   >
                     <div className="bg-gradient-to-r from-primary to-primary-600 text-white px-6 py-2 rounded-full font-bold text-sm shadow-lg flex items-center">
@@ -545,7 +826,7 @@ export const EnhancedPricingSection: React.FC = () => {
                   <div className="text-center mb-8">
                     <motion.h3 
                       className="text-2xl font-bold mb-3 dark:text-white"
-                      variants={elegantVariants.textReveal}
+                      variants={elegantVariants.fadeInUp}
                     >
                       {plan.name}
                     </motion.h3>
@@ -562,7 +843,7 @@ export const EnhancedPricingSection: React.FC = () => {
                       <div className="text-center mb-4">
                         <motion.span 
                           className="text-5xl font-bold text-primary"
-                          variants={elegantVariants.textReveal}
+                          variants={elegantVariants.fadeInUp}
                         >
                           ₹{getDisplayPrice(plan)}
                         </motion.span>
@@ -667,7 +948,7 @@ export const EnhancedPricingSection: React.FC = () => {
                 {/* Card glow effect */}
                 <motion.div
                   className={`absolute inset-0 bg-gradient-to-r ${plan.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-500 rounded-3xl`}
-                  variants={elegantVariants.glow}
+                  variants={elegantVariants.pulse}
                   animate="animate"
                 />
               </motion.div>

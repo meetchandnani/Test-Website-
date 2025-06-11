@@ -3,14 +3,288 @@ import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 import { CheckCircle2, Zap, Wifi, WifiOff, ArrowRight, Play, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { GetStartedModal } from './GetStartedModal';
-import { 
-  elegantVariants, 
-  elegantSprings, 
-  FloatingElement, 
-  MagneticButton, 
-  RevealText,
-  ParticleSystem 
-} from './ElegantAnimations';
+
+// Professional animation variants
+const elegantVariants = {
+  pageEnter: {
+    initial: { 
+      opacity: 0, 
+      y: 60,
+      scale: 0.95,
+    },
+    animate: { 
+      opacity: 1, 
+      y: 0,
+      scale: 1,
+      transition: {
+        duration: 1.2,
+        ease: [0.25, 0.46, 0.45, 0.94],
+        staggerChildren: 0.15,
+      }
+    }
+  },
+  elegantScale: {
+    initial: { scale: 0.8, opacity: 0 },
+    animate: { 
+      scale: 1, 
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 200,
+        damping: 25,
+        mass: 1,
+      }
+    },
+    hover: {
+      scale: 1.05,
+      transition: {
+        type: "spring",
+        stiffness: 400,
+        damping: 30,
+      }
+    }
+  },
+  fadeInUp: {
+    initial: { 
+      opacity: 0, 
+      y: 40,
+      filter: "blur(4px)",
+    },
+    animate: { 
+      opacity: 1, 
+      y: 0,
+      filter: "blur(0px)",
+      transition: {
+        duration: 1,
+        ease: [0.25, 0.46, 0.45, 0.94],
+      }
+    }
+  },
+  slideIn: {
+    initial: { x: -100, opacity: 0 },
+    animate: { 
+      x: 0, 
+      opacity: 1,
+      transition: {
+        duration: 1,
+        ease: [0.25, 0.46, 0.45, 0.94],
+      }
+    }
+  },
+  pulse: {
+    animate: {
+      scale: [1, 1.05, 1],
+      opacity: [0.8, 1, 0.8],
+      transition: {
+        duration: 3,
+        repeat: Infinity,
+        ease: "easeInOut",
+      }
+    }
+  },
+  rotate: {
+    animate: {
+      rotate: [0, 360],
+      transition: {
+        duration: 20,
+        repeat: Infinity,
+        ease: "linear",
+      }
+    }
+  },
+  shimmer: {
+    animate: {
+      backgroundPosition: ["200% 0", "-200% 0"],
+      transition: {
+        duration: 2,
+        repeat: Infinity,
+        ease: "linear",
+      }
+    }
+  },
+  stagger: {
+    animate: {
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
+      }
+    }
+  },
+  float: {
+    animate: {
+      y: [-8, 8, -8],
+      transition: {
+        duration: 6,
+        repeat: Infinity,
+        ease: "easeInOut",
+        times: [0, 0.5, 1],
+      }
+    }
+  },
+  bounce: {
+    animate: {
+      y: [0, -20, 0],
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 10,
+        repeat: Infinity,
+        repeatDelay: 2,
+      }
+    }
+  }
+};
+
+// Floating Element Component
+const FloatingElement: React.FC<{
+  children: React.ReactNode;
+  intensity?: number;
+  duration?: number;
+  className?: string;
+}> = ({ children, intensity = 1, duration = 6, className = "" }) => {
+  return (
+    <motion.div
+      className={className}
+      animate={{
+        y: [-8 * intensity, 8 * intensity, -8 * intensity],
+        rotate: [-2 * intensity, 2 * intensity, -2 * intensity],
+      }}
+      transition={{
+        duration,
+        repeat: Infinity,
+        ease: "easeInOut",
+        times: [0, 0.5, 1],
+      }}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+// Magnetic Button Component
+const MagneticButton: React.FC<{
+  children: React.ReactNode;
+  className?: string;
+  onClick?: () => void;
+}> = ({ children, className = "", onClick }) => {
+  const [mousePosition, setMousePosition] = React.useState({ x: 0, y: 0 });
+  const [isHovered, setIsHovered] = React.useState(false);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    setMousePosition({
+      x: e.clientX - centerX,
+      y: e.clientY - centerY,
+    });
+  };
+
+  return (
+    <motion.button
+      className={className}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={onClick}
+      animate={{
+        x: isHovered ? mousePosition.x * 0.1 : 0,
+        y: isHovered ? mousePosition.y * 0.1 : 0,
+        scale: isHovered ? 1.05 : 1,
+      }}
+      transition={{
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+      }}
+    >
+      {children}
+    </motion.button>
+  );
+};
+
+// Reveal Text Component
+const RevealText: React.FC<{
+  text: string;
+  className?: string;
+  delay?: number;
+}> = ({ text, className = "", delay = 0 }) => {
+  const words = text.split(" ");
+  
+  return (
+    <motion.div
+      className={className}
+      initial="initial"
+      animate="animate"
+      variants={{
+        animate: {
+          transition: {
+            staggerChildren: 0.1,
+            delayChildren: delay,
+          }
+        }
+      }}
+    >
+      {words.map((word, i) => (
+        <motion.span
+          key={i}
+          className="inline-block mr-2"
+          variants={{
+            initial: { 
+              y: 100,
+              opacity: 0,
+              skewY: 7,
+            },
+            animate: { 
+              y: 0,
+              opacity: 1,
+              skewY: 0,
+              transition: {
+                duration: 1,
+                ease: [0.25, 0.46, 0.45, 0.94],
+              }
+            }
+          }}
+        >
+          {word}
+        </motion.span>
+      ))}
+    </motion.div>
+  );
+};
+
+// Particle System Component
+const ParticleSystem: React.FC<{
+  count?: number;
+  className?: string;
+}> = ({ count = 6, className = "" }) => {
+  return (
+    <div className={`absolute inset-0 overflow-hidden pointer-events-none ${className}`}>
+      {[...Array(count)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-2 h-2 bg-primary/30 rounded-full"
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+          }}
+          animate={{
+            y: [0, -100, -200],
+            x: [0, Math.sin(i) * 50, Math.sin(i) * 100],
+            opacity: [1, 0.5, 0],
+            scale: [1, 0.5, 0],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            delay: i * 0.2,
+            ease: "easeOut",
+          }}
+        />
+      ))}
+    </div>
+  );
+};
 
 export const EnhancedHero: React.FC = () => {
   const [showGetStartedModal, setShowGetStartedModal] = useState(false);
@@ -322,7 +596,11 @@ export const EnhancedHero: React.FC = () => {
                     rotateY: mousePosition.x * 5,
                     rotateX: mousePosition.y * -5,
                   }}
-                  transition={elegantSprings.responsive}
+                  transition={{
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 30,
+                  }}
                   style={{
                     transformStyle: "preserve-3d",
                     perspective: 1000,
