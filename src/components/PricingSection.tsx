@@ -506,34 +506,6 @@ export const PricingSection: React.FC = () => {
                 </button>
               </div>
 
-              {/* Employee Count Selector */}
-              <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl">
-                <div className="flex items-center justify-center mb-4">
-                  <Users className="w-6 h-6 text-primary mr-2" />
-                  <h4 className="text-lg font-semibold dark:text-white">Number of Employees</h4>
-                </div>
-                <div className="flex items-center justify-center space-x-4">
-                  <button
-                    onClick={() => setEmployeeCount(Math.max(5, employeeCount - 5))}
-                    className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 flex items-center justify-center font-bold dark:text-white"
-                  >
-                    -
-                  </button>
-                  <div className="text-2xl font-bold text-primary min-w-[60px] text-center">
-                    {employeeCount}
-                  </div>
-                  <button
-                    onClick={() => setEmployeeCount(employeeCount + 5)}
-                    className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 flex items-center justify-center font-bold dark:text-white"
-                  >
-                    +
-                  </button>
-                </div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-2">
-                  Minimum 5 employees, increments of 5
-                </p>
-              </div>
-
               {/* Coupon Code Section */}
               <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl">
                 <div className="flex items-center mb-3">
