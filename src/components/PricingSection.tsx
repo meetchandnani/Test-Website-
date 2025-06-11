@@ -231,7 +231,11 @@ export const PricingSection: React.FC = () => {
 
   const handleViewCart = () => {
     setShowConfirmation(prev => ({ ...prev, visible: false }));
-    navigate('/cart');
+    // Scroll to top before navigating
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => {
+      navigate('/cart');
+    }, 300);
   };
 
   const handleContinueShopping = () => {
