@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Star, Users, Calculator, ShoppingCart, Plus, CreditCard, Wallet, X, Tag, Percent } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { AddToCartConfirmation } from './AddToCartConfirmation';
+import { AddToCartAnimation } from './AddToCartAnimation';
 import { useNavigate } from 'react-router-dom';
 
 declare global {
@@ -78,6 +79,21 @@ export const PricingSection: React.FC = () => {
     billing: 'monthly'
   });
   
+  // Animation states
+  const [animationState, setAnimationState] = useState<{
+    isVisible: boolean;
+    startPosition: { x: number; y: number };
+    endPosition: { x: number; y: number };
+    productName: string;
+  }>({
+    isVisible: false,
+    startPosition: { x: 0, y: 0 },
+    endPosition: { x: 0, y: 0 },
+    productName: ''
+  });
+
+  const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  
   const { addToCart } = useCart();
   const navigate = useNavigate();
 
@@ -146,35 +162,71 @@ export const PricingSection: React.FC = () => {
     return basePrice - finalPrice;
   };
 
-  const handleAddToCart = (planIndex: number) => {
+  const getCartIconPosition = () => {
+    // Get cart icon position from header - we'll target the top right area
+    const headerHeight = 80; // Approximate header height
+    const cartIconOffset = 100; // Distance from right edge
+    
+    return {
+      x: window.innerWidth - cartIconOffset,
+      y: headerHeight / 2
+    };
+  };
+
+  const handleAddToCart = (planIndex: number, event: React.MouseEvent<HTMLButtonElement>) => {
     const plan = plans[planIndex];
     const basePrice = calculatePrice(plan, employeeCount);
     const finalPrice = getFinalPrice(plan, employeeCount);
     
-    addToCart({
-      planIndex,
-      planName: plan.name,
-      employeeCount,
-      basePrice,
-      finalPrice,
-      billing: isYearly ? 'yearly' : 'monthly',
-      coupon: appliedCoupon || undefined,
-      discount: appliedCoupon ? getDiscountAmount(plan, employeeCount) : undefined
+    // Get button position for animation start point
+    const buttonRect = event.currentTarget.getBoundingClientRect();
+    const startPosition = {
+      x: buttonRect.left + buttonRect.width / 2,
+      y: buttonRect.top + buttonRect.height / 2
+    };
+
+    // Get cart icon position for animation end point
+    const endPosition = getCartIconPosition();
+
+    // Start animation
+    setAnimationState({
+      isVisible: true,
+      startPosition,
+      endPosition,
+      productName: plan.name
     });
 
-    // Show confirmation popup
-    setShowConfirmation({
-      visible: true,
-      planName: plan.name,
-      price: finalPrice,
-      employeeCount,
-      billing: isYearly ? 'yearly' : 'monthly'
-    });
-    
+    // Add to cart after a short delay to sync with animation
+    setTimeout(() => {
+      addToCart({
+        planIndex,
+        planName: plan.name,
+        employeeCount,
+        basePrice,
+        finalPrice,
+        billing: isYearly ? 'yearly' : 'monthly',
+        coupon: appliedCoupon || undefined,
+        discount: appliedCoupon ? getDiscountAmount(plan, employeeCount) : undefined
+      });
+
+      // Show confirmation popup
+      setShowConfirmation({
+        visible: true,
+        planName: plan.name,
+        price: finalPrice,
+        employeeCount,
+        billing: isYearly ? 'yearly' : 'monthly'
+      });
+    }, 400); // Sync with animation timing
+
     // Reset coupon
     setAppliedCoupon(null);
     setCouponCode('');
     setCouponError('');
+  };
+
+  const handleAnimationComplete = () => {
+    setAnimationState(prev => ({ ...prev, isVisible: false }));
   };
 
   const handleViewCart = () => {
@@ -423,13 +475,22 @@ export const PricingSection: React.FC = () => {
                   
                   {/* Single Add to Cart Button */}
                   <motion.button
-                    onClick={() => handleAddToCart(index)}
-                    className={`w-full btn ${plan.popular ? 'btn-primary' : 'btn-outline'} flex items-center justify-center gap-2 mb-8`}
+                    ref={(el) => (buttonRefs.current[index] = el)}
+                    onClick={(e) => handleAddToCart(index, e)}
+                    className={`w-full btn ${plan.popular ? 'btn-primary' : 'btn-outline'} flex items-center justify-center gap-2 mb-8 relative overflow-hidden`}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
                     <ShoppingCart className="w-5 h-5" />
                     Add to Cart
+                    
+                    {/* Button hover effect */}
+                    <motion.div
+                      className="absolute inset-0 bg-white/20"
+                      initial={{ x: '-100%' }}
+                      whileHover={{ x: '100%' }}
+                      transition={{ duration: 0.6 }}
+                    />
                   </motion.button>
 
                   <div className="space-y-4">
@@ -457,6 +518,15 @@ export const PricingSection: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Add to Cart Animation */}
+      <AddToCartAnimation
+        isVisible={animationState.isVisible}
+        startPosition={animationState.startPosition}
+        endPosition={animationState.endPosition}
+        productName={animationState.productName}
+        onComplete={handleAnimationComplete}
+      />
 
       {/* Add to Cart Confirmation */}
       <AddToCartConfirmation
