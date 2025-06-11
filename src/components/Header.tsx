@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, ShoppingCart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ThemeToggle } from './ThemeToggle';
 import { useTheme } from './ThemeContext';
+import { useCart } from '../contexts/CartContext';
 
 export const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
   const { isDark } = useTheme();
+  const { getTotalItems } = useCart();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -44,6 +46,8 @@ export const Header: React.FC = () => {
   const handleGetStartedClick = () => {
     window.open('https://app.myhisaab.com', '_blank');
   };
+
+  const totalItems = getTotalItems();
 
   return (
     <motion.header
@@ -98,6 +102,27 @@ export const Header: React.FC = () => {
           {/* Theme Toggle */}
           <ThemeToggle />
           
+          {/* Cart Icon */}
+          <motion.Link
+            to="/cart"
+            className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={scrollToTop}
+          >
+            <ShoppingCart className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+            {totalItems > 0 && (
+              <motion.span
+                className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+              >
+                {totalItems}
+              </motion.span>
+            )}
+          </motion.Link>
+          
           <motion.button 
             onClick={handleGetStartedClick}
             className="btn btn-primary"
@@ -108,9 +133,31 @@ export const Header: React.FC = () => {
           </motion.button>
         </nav>
 
-        {/* Mobile Menu Button and Theme Toggle */}
+        {/* Mobile Menu Button, Cart, and Theme Toggle */}
         <div className="md:hidden flex items-center space-x-2">
           <ThemeToggle />
+          
+          {/* Mobile Cart Icon */}
+          <motion.Link
+            to="/cart"
+            className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={scrollToTop}
+          >
+            <ShoppingCart className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+            {totalItems > 0 && (
+              <motion.span
+                className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+              >
+                {totalItems}
+              </motion.span>
+            )}
+          </motion.Link>
+          
           <motion.button 
             className="text-gray-700 dark:text-gray-300"
             whileTap={{ scale: 0.9 }}
