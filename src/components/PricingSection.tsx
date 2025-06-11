@@ -17,7 +17,7 @@ const plans = [
     monthlyPrice: 150,
     yearlyPrice: 600,
     description: 'Perfect for small businesses and startups',
-    isFlat: false, // FIXED: Changed to false so it calculates per employee
+    isFlat: false, // FIXED: Both plans now calculate per employee
     features: [
       'AI-based Selfie Verification',
       'WhatsApp Daily Reporting',
@@ -82,11 +82,11 @@ export const PricingSection: React.FC = () => {
   const navigate = useNavigate();
 
   const calculatePrice = (plan: any, employees: number) => {
-    // FIXED: Both plans now calculate per employee
+    // FIXED: Both plans now calculate per employee for both monthly and yearly
     if (isYearly) {
       return plan.yearlyPrice * employees;
     } else {
-      return plan.monthlyPrice * employees;
+      return plan.monthlyPrice * employees; // Both Basic and Professional multiply by employee count
     }
   };
 
