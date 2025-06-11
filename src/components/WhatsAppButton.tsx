@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 
 export const WhatsAppButton: React.FC = () => {
   const handleWhatsAppClick = () => {
-    window.open('https://wa.me/918696770077?text=I visit your website and wanna know about Smart Attendance and Payroll', '_blank');
+    window.open('https://wa.me/918696770077?text=I visit your website and wanna know about Smart Attendance and Payroll so kindly help me with the onboaarding process. ', '_blank');
   };
 
   return (
