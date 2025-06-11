@@ -12,6 +12,7 @@ import { HowItWorks } from './pages/HowItWorks';
 import { Pricing } from './pages/Pricing';
 import { Contact } from './pages/Contact';
 import { Cart } from './pages/Cart';
+import { Coupons } from './pages/Coupons';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
                 <Route path="/pricing" element={<Pricing />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/cart" element={<Cart />} />
+                <Route path="/coupons" element={<Coupons />} />
               </Routes>
             </main>
             <Footer />
