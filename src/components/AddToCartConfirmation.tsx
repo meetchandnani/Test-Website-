@@ -22,6 +22,15 @@ export const AddToCartConfirmation: React.FC<AddToCartConfirmationProps> = ({
   onViewCart,
   onContinueShopping
 }) => {
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleViewCart = () => {
+    scrollToTop();
+    onViewCart();
+  };
+
   return (
     <AnimatePresence>
       {isVisible && (
@@ -43,8 +52,8 @@ export const AddToCartConfirmation: React.FC<AddToCartConfirmationProps> = ({
             exit={{ scale: 0.8, opacity: 0, y: 50 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
           >
-            {/* Success Header */}
-            <div className="bg-gradient-to-r from-green-500 to-green-600 p-6 text-center">
+            {/* Success Header - Changed to Yellow Theme */}
+            <div className="bg-gradient-to-r from-primary to-primary-600 p-6 text-center">
               <motion.div
                 className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4"
                 animate={{
@@ -59,7 +68,7 @@ export const AddToCartConfirmation: React.FC<AddToCartConfirmationProps> = ({
                 <CheckCircle2 className="w-8 h-8 text-white" />
               </motion.div>
               <h2 className="text-2xl font-bold text-white mb-2">Added to Cart!</h2>
-              <p className="text-green-100">Item successfully added to your cart</p>
+              <p className="text-yellow-100">Item successfully added to your cart</p>
             </div>
 
             {/* Product Details */}
@@ -81,7 +90,7 @@ export const AddToCartConfirmation: React.FC<AddToCartConfirmationProps> = ({
               {/* Action Buttons */}
               <div className="space-y-3">
                 <motion.button
-                  onClick={onViewCart}
+                  onClick={handleViewCart}
                   className="w-full btn btn-primary flex items-center justify-center gap-2"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
@@ -101,15 +110,15 @@ export const AddToCartConfirmation: React.FC<AddToCartConfirmationProps> = ({
                 </motion.button>
               </div>
 
-              {/* Quick Stats */}
-              <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
+              {/* Quick Stats - Updated with Yellow Theme */}
+              <div className="mt-6 p-4 bg-primary-50 dark:bg-primary-900/30 rounded-xl">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-600 dark:text-gray-300">Free Setup</span>
-                  <span className="text-green-600 font-medium">✓ Included</span>
+                  <span className="text-primary font-medium">✓ Included</span>
                 </div>
                 <div className="flex items-center justify-between text-sm mt-2">
                   <span className="text-gray-600 dark:text-gray-300">24/7 Support</span>
-                  <span className="text-green-600 font-medium">✓ Included</span>
+                  <span className="text-primary font-medium">✓ Included</span>
                 </div>
               </div>
             </div>
