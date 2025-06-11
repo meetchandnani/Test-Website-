@@ -51,6 +51,12 @@ export const Header: React.FC = () => {
     setShowGetStartedModal(true);
   };
 
+  const handleLogoClick = () => {
+    scrollToTop();
+    // Close mobile menu if open
+    setIsMenuOpen(false);
+  };
+
   const totalItems = getTotalItems();
 
   const handleCartClick = () => {
@@ -72,20 +78,28 @@ export const Header: React.FC = () => {
         transition={{ duration: 0.5 }}
       >
         <div className="container flex items-center justify-between">
-          {/* Logo */}
-          <motion.Link 
-            to="/" 
-            className="flex items-center"
+          {/* Logo - Enhanced with better click handling */}
+          <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={scrollToTop}
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}
           >
-            <img 
-              src="/WhatsApp Image 2025-01-14 at 22.37.16-Photoroom.png"
-              alt="MyHisaab" 
-              className="h-8"
-            />
-          </motion.Link>
+            <Link 
+              to="/" 
+              className="flex items-center cursor-pointer"
+              onClick={handleLogoClick}
+              aria-label="MyHisaab Home"
+            >
+              <motion.img 
+                src="/WhatsApp Image 2025-01-14 at 22.37.16-Photoroom.png"
+                alt="MyHisaab - Smart Attendance & Workforce Management" 
+                className="h-8 transition-all duration-300 hover:brightness-110"
+                whileHover={{ 
+                  filter: "brightness(1.1) drop-shadow(0 4px 8px rgba(247, 181, 0, 0.3))" 
+                }}
+              />
+            </Link>
+          </motion.div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
