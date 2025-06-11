@@ -19,17 +19,15 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
-    // Check for saved theme preference or default to auto-detect
+    // Check for saved theme preference
     const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const currentHour = new Date().getHours();
-    const isNightTime = currentHour >= 18 || currentHour <= 6; // 6 PM to 6 AM
-
+    
     if (savedTheme) {
+      // If user has a saved preference, use it
       setIsDark(savedTheme === 'dark');
     } else {
-      // Auto-detect: use night time or system preference
-      setIsDark(isNightTime || prefersDark);
+      // Default to light theme for new visitors
+      setIsDark(false);
     }
   }, []);
 
