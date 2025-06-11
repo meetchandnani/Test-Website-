@@ -4,7 +4,8 @@ import { motion } from 'framer-motion';
 
 export const WhatsAppButton: React.FC = () => {
   const handleWhatsAppClick = () => {
-    window.open('https://wa.me/918696770077?text=I want more info about MyHisaab Smart Attendance and Payroll', '_blank');
+    window.open('https://wa.me/918696770077?text=Hi 👋 I just visited your website and I’m interested in your automated attendance & payroll system. Please help me get started with the subscription and setup!
+', '_blank');
   };
 
   return (
