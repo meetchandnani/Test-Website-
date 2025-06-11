@@ -17,7 +17,7 @@ const plans = [
     monthlyPrice: 150,
     yearlyPrice: 600,
     description: 'Perfect for small businesses and startups',
-    isFlat: true, // Basic plan is flat rate for monthly
+    isFlat: false, // FIXED: Changed to false so it calculates per employee
     features: [
       'AI-based Selfie Verification',
       'WhatsApp Daily Reporting',
@@ -82,15 +82,11 @@ export const PricingSection: React.FC = () => {
   const navigate = useNavigate();
 
   const calculatePrice = (plan: any, employees: number) => {
+    // FIXED: Both plans now calculate per employee
     if (isYearly) {
       return plan.yearlyPrice * employees;
     } else {
-      // Monthly calculation - FIXED: Basic plan is flat rate, Professional is per employee
-      if (plan.isFlat) {
-        return plan.monthlyPrice; // ₹150 flat for Basic regardless of employee count
-      } else {
-        return plan.monthlyPrice * employees; // ₹300 per employee for Professional
-      }
+      return plan.monthlyPrice * employees;
     }
   };
 
@@ -103,14 +99,11 @@ export const PricingSection: React.FC = () => {
   };
 
   const getPriceLabel = (plan: any) => {
+    // FIXED: Both plans now show per employee pricing
     if (isYearly) {
       return 'per employee/year';
     } else {
-      if (plan.isFlat) {
-        return 'per month (flat rate)';
-      } else {
-        return 'per employee/month';
-      }
+      return 'per employee/month';
     }
   };
 
@@ -408,11 +401,6 @@ export const PricingSection: React.FC = () => {
                       <p className="text-xs text-primary text-center mt-1">
                         For {employeeCount} employees
                       </p>
-                      {!isYearly && plan.isFlat && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-1">
-                          (Flat rate regardless of employee count)
-                        </p>
-                      )}
                       {appliedCoupon && (
                         <p className="text-xs text-green-600 dark:text-green-400 text-center mt-1">
                           Discount: ₹{getDiscountAmount(plan, employeeCount).toLocaleString()}
