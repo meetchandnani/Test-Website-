@@ -224,34 +224,57 @@ export const Cart: React.FC = () => {
         />
       </div>
 
-      {/* Header */}
-      <section className="relative pt-32 pb-12">
+      {/* Top Navigation Bar */}
+      <div className="relative z-10 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700">
         <div className="container">
-          <motion.div
-            className="flex items-center mb-8"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            <Link 
-              to="/pricing" 
-              className="flex items-center text-gray-600 dark:text-gray-400 hover:text-primary transition-all duration-300 group"
+          <div className="flex items-center justify-between py-4">
+            {/* Back to Pricing Link */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
             >
-              <motion.div
-                whileHover={{ x: -5 }}
-                transition={{ type: "spring", stiffness: 400 }}
+              <Link 
+                to="/pricing" 
+                className="flex items-center text-gray-600 dark:text-gray-400 hover:text-primary transition-all duration-300 group"
               >
-                <ArrowLeft className="w-5 h-5 mr-2" />
-              </motion.div>
-              <span className="group-hover:underline">Back to Pricing</span>
-            </Link>
-          </motion.div>
+                <motion.div
+                  whileHover={{ x: -5 }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                >
+                  <ArrowLeft className="w-5 h-5 mr-2" />
+                </motion.div>
+                <span className="group-hover:underline font-medium">Back to Pricing</span>
+              </Link>
+            </motion.div>
 
+            {/* Cart Icon in Top Right */}
+            <motion.div
+              className="flex items-center space-x-4"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            >
+              <div className="flex items-center bg-primary/10 dark:bg-primary/20 px-4 py-2 rounded-full">
+                <ShoppingCart className="w-5 h-5 text-primary mr-2" />
+                <span className="text-primary font-semibold">
+                  {cart.length} {cart.length === 1 ? 'Item' : 'Items'}
+                </span>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content - Starting from top */}
+      <div className="relative pt-8 pb-20">
+        <div className="container">
+          {/* Page Title */}
           <motion.div
             className="text-center mb-12"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
           >
             <motion.div
               className="inline-flex items-center justify-center mb-6"
@@ -262,27 +285,22 @@ export const Cart: React.FC = () => {
                 <ShoppingCart className="w-8 h-8 text-white" />
               </div>
               <div className="text-left">
-                <h1 className="text-5xl md:text-6xl font-bold dark:text-white">
+                <h1 className="text-4xl md:text-5xl font-bold dark:text-white">
                   Shopping
                   <span className="text-primary block">Cart</span>
                 </h1>
               </div>
             </motion.div>
             <motion.p
-              className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto"
+              className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
             >
               Review your selected plans and complete your purchase to start transforming your workforce management.
             </motion.p>
           </motion.div>
-        </div>
-      </section>
 
-      {/* Cart Content */}
-      <section className="relative pb-20">
-        <div className="container">
           {cart.length === 0 ? (
             /* Empty Cart */
             <motion.div
@@ -748,7 +766,7 @@ export const Cart: React.FC = () => {
             </motion.div>
           )}
         </div>
-      </section>
+      </div>
     </motion.div>
   );
 };
