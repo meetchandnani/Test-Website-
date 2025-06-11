@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, X, Users, Calculator, Tag, Percent, ShoppingCart } from 'lucide-react';
-import { useCart } from '../components/CartContext';
+import { Check, X, Users, Calculator, Tag, Percent, CreditCard, Wallet } from 'lucide-react';
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 const plans = [
   {
@@ -53,11 +58,11 @@ const coupons = {
 export const Pricing: React.FC = () => {
   const [isYearly, setIsYearly] = useState(true);
   const [employeeCount, setEmployeeCount] = useState(5);
+  const [selectedPlan, setSelectedPlan] = useState<number | null>(null);
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [couponError, setCouponError] = useState('');
   const [showCouponInput, setShowCouponInput] = useState(false);
-  const { addToCart } = useCart();
 
   const calculatePrice = (plan: any, employees: number) => {
     if (isYearly) {
@@ -124,27 +129,53 @@ export const Pricing: React.FC = () => {
     return basePrice - finalPrice;
   };
 
-  const handleAddToCart = (planIndex: number) => {
-    const plan = plans[planIndex];
-    const basePrice = calculatePrice(plan, employeeCount);
-    const finalPrice = getFinalPrice(plan, employeeCount);
-    
-    addToCart({
-      planIndex,
-      planName: plan.name,
-      employeeCount,
-      basePrice,
-      finalPrice,
-      billing: isYearly ? 'yearly' : 'monthly',
-      coupon: appliedCoupon || undefined,
-      discount: appliedCoupon ? getDiscountAmount(plan, employeeCount) : undefined
-    });
+  const handleSubscribe = (planIndex: number) => {
+    setSelectedPlan(planIndex);
+  };
 
-    // Reset coupon after adding to cart
-    setAppliedCoupon(null);
-    setCouponCode('');
-    setCouponError('');
-    setShowCouponInput(false);
+  const handlePayment = (method: 'card' | 'upi') => {
+    if (selectedPlan === null) return;
+    
+    const plan = plans[selectedPlan];
+    const finalAmount = getFinalPrice(plan, employeeCount);
+    
+    const options = {
+      key: 'rzp_live_48budavqkFEuRM',
+      amount: finalAmount * 100,
+      currency: 'INR',
+      name: 'MyHisaab',
+      description: `${plan.name} - ${employeeCount} employees - ${isYearly ? 'yearly' : 'monthly'}${appliedCoupon ? ` (${appliedCoupon} applied)` : ''}`,
+      image: '/WhatsApp Image 2025-01-14 at 22.37.16-Photoroom.png',
+      handler: function (response: any) {
+        alert(`Payment successful! Payment ID: ${response.razorpay_payment_id}`);
+        setSelectedPlan(null);
+        setAppliedCoupon(null);
+        setCouponCode('');
+      },
+      prefill: {
+        name: '',
+        email: '',
+        contact: ''
+      },
+      notes: {
+        plan: plan.name,
+        billing: isYearly ? 'yearly' : 'monthly',
+        employees: employeeCount.toString(),
+        coupon: appliedCoupon || 'none'
+      },
+      theme: {
+        color: '#F7B500'
+      },
+      method: {
+        card: method === 'card',
+        upi: method === 'upi',
+        netbanking: false,
+        wallet: false
+      }
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.open();
   };
 
   return (
@@ -391,13 +422,12 @@ export const Pricing: React.FC = () => {
                     </motion.div>
                     
                     <motion.button
-                      onClick={() => handleAddToCart(index)}
-                      className="w-full btn btn-primary flex items-center justify-center gap-2 mb-8"
+                      onClick={() => handleSubscribe(index)}
+                      className={`w-full btn ${plan.popular ? 'btn-primary' : 'btn-outline'} mb-8`}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      <ShoppingCart className="w-4 h-4" />
-                      Add to Cart
+                      Subscribe Now
                     </motion.button>
 
                     <div className="space-y-4">
@@ -421,6 +451,150 @@ export const Pricing: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Checkout Modal */}
+      <AnimatePresence>
+        {selectedPlan !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setSelectedPlan(null);
+                setAppliedCoupon(null);
+                setCouponCode('');
+                setCouponError('');
+              }
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white dark:bg-gray-800 rounded-3xl p-8 max-w-md w-full shadow-xl max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-bold dark:text-white">Complete Your Subscription</h3>
+                <button
+                  onClick={() => {
+                    setSelectedPlan(null);
+                    setAppliedCoupon(null);
+                    setCouponCode('');
+                    setCouponError('');
+                  }}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              {/* Coupon Code Section */}
+              <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl">
+                <div className="flex items-center mb-3">
+                  <Tag className="w-5 h-5 text-primary mr-2" />
+                  <h4 className="font-semibold dark:text-white">Have a Coupon Code?</h4>
+                </div>
+                
+                {!appliedCoupon ? (
+                  <div className="space-y-3">
+                    <div className="flex space-x-2">
+                      <input
+                        type="text"
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value)}
+                        placeholder="Enter coupon code"
+                        className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary focus:border-primary dark:bg-gray-600 dark:text-white text-sm"
+                      />
+                      <button
+                        onClick={applyCoupon}
+                        className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors text-sm font-medium"
+                      >
+                        Apply
+                      </button>
+                    </div>
+                    {couponError && (
+                      <p className="text-red-500 text-xs">{couponError}</p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between bg-green-50 dark:bg-green-900/30 p-3 rounded-lg">
+                    <div className="flex items-center">
+                      <Percent className="w-4 h-4 text-green-600 mr-2" />
+                      <span className="text-green-700 dark:text-green-300 font-medium text-sm">
+                        {appliedCoupon} - {coupons[appliedCoupon as keyof typeof coupons].description}
+                      </span>
+                    </div>
+                    <button
+                      onClick={removeCoupon}
+                      className="text-red-500 hover:text-red-700 text-sm"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Plan Summary */}
+              <div className="mb-6 p-4 bg-primary-50 dark:bg-primary-900/30 rounded-2xl">
+                <h4 className="font-semibold text-lg dark:text-white">{plans[selectedPlan].name}</h4>
+                
+                <div className="space-y-2 mt-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 dark:text-gray-300">Base Price:</span>
+                    <span className="font-medium dark:text-white">
+                      ₹{calculatePrice(plans[selectedPlan], employeeCount).toLocaleString()}
+                    </span>
+                  </div>
+                  
+                  {appliedCoupon && (
+                    <div className="flex justify-between items-center text-green-600 dark:text-green-400">
+                      <span>Discount ({coupons[appliedCoupon as keyof typeof coupons].description}):</span>
+                      <span>-₹{getDiscountAmount(plans[selectedPlan], employeeCount).toLocaleString()}</span>
+                    </div>
+                  )}
+                  
+                  <div className="border-t border-gray-200 dark:border-gray-600 pt-2">
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold dark:text-white">Total:</span>
+                      <span className="text-2xl font-bold text-primary">
+                        ₹{getFinalPrice(plans[selectedPlan], employeeCount).toLocaleString()}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 text-right">
+                      {isYearly ? 'per year' : 'per month'} for {employeeCount} employees
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Payment Buttons */}
+              <div className="space-y-4">
+                <motion.button
+                  onClick={() => handlePayment('card')}
+                  className="w-full btn btn-primary flex items-center justify-center gap-2"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <CreditCard className="w-5 h-5" />
+                  Pay with Card
+                </motion.button>
+                
+                <motion.button
+                  onClick={() => handlePayment('upi')}
+                  className="w-full btn btn-outline flex items-center justify-center gap-2"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Wallet className="w-5 h-5" />
+                  Pay with UPI
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* FAQ Section */}
       <section className="py-20 bg-white dark:bg-gray-800">
