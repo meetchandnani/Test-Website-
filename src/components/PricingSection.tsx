@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Star, Users, Calculator, CreditCard, Wallet, X, Tag, Percent } from 'lucide-react';
+import { Check, Star, Users, Calculator, CreditCard, Wallet, X, Tag, Percent, ShoppingCart } from 'lucide-react';
+import { useCart } from './CartContext';
 
 declare global {
   interface Window {
@@ -63,6 +64,8 @@ export const PricingSection: React.FC = () => {
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [couponError, setCouponError] = useState('');
   const [showCouponInput, setShowCouponInput] = useState(false);
+  
+  const { addToCart } = useCart();
 
   const calculatePrice = (plan: any, employees: number) => {
     if (isYearly) {
@@ -127,6 +130,29 @@ export const PricingSection: React.FC = () => {
     const basePrice = calculatePrice(plan, employees);
     const finalPrice = getFinalPrice(plan, employees);
     return basePrice - finalPrice;
+  };
+
+  const handleAddToCart = (planIndex: number) => {
+    const plan = plans[planIndex];
+    const basePrice = calculatePrice(plan, employeeCount);
+    const finalPrice = getFinalPrice(plan, employeeCount);
+    
+    addToCart({
+      planIndex,
+      planName: plan.name,
+      employeeCount,
+      basePrice,
+      finalPrice,
+      billing: isYearly ? 'yearly' : 'monthly',
+      coupon: appliedCoupon || undefined,
+      discount: appliedCoupon ? getDiscountAmount(plan, employeeCount) : undefined
+    });
+
+    // Reset coupon after adding to cart
+    setAppliedCoupon(null);
+    setCouponCode('');
+    setCouponError('');
+    setShowCouponInput(false);
   };
 
   const handleSubscribe = (planIndex: number) => {
@@ -406,14 +432,25 @@ export const PricingSection: React.FC = () => {
                     </div>
                   </motion.div>
                   
-                  <motion.button
-                    onClick={() => handleSubscribe(index)}
-                    className={`w-full btn ${plan.popular ? 'btn-primary' : 'btn-outline'} mb-8`}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    Subscribe Now
-                  </motion.button>
+                  <div className="flex space-x-2 mb-8">
+                    <motion.button
+                      onClick={() => handleAddToCart(index)}
+                      className="flex-1 btn btn-outline flex items-center justify-center gap-2"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <ShoppingCart className="w-4 h-4" />
+                      Add to Cart
+                    </motion.button>
+                    <motion.button
+                      onClick={() => handleSubscribe(index)}
+                      className={`flex-1 btn ${plan.popular ? 'btn-primary' : 'btn-outline'}`}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      Subscribe Now
+                    </motion.button>
+                  </div>
 
                   <div className="space-y-4">
                     {plan.features.map((feature, fIndex) => (
@@ -430,7 +467,7 @@ export const PricingSection: React.FC = () => {
 
           <div className="text-center mt-12">
             <motion.a
-              href="/pricing"
+              href="/features"
               className="btn btn-outline"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
