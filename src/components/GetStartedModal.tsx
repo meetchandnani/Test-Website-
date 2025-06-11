@@ -65,14 +65,8 @@ export const GetStartedModal: React.FC<GetStartedModalProps> = ({ isOpen, onClos
     });
   };
 
-  const handleAppDownload = (platform: 'android' | 'ios') => {
-    // Replace with actual app store links
-    const links = {
-      android: 'https://play.google.com/store/apps/details?id=com.myhisaab.app',
-      ios: 'https://apps.apple.com/app/myhisaab/id123456789'
-    };
-    
-    window.open(links[platform], '_blank');
+  const handleAppDownload = () => {
+    window.open('https://app.myhisaab.com', '_blank');
   };
 
   if (!isOpen) return null;
@@ -310,48 +304,27 @@ export const GetStartedModal: React.FC<GetStartedModalProps> = ({ isOpen, onClos
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Android Download */}
-                    <motion.button
-                      onClick={() => handleAppDownload('android')}
-                      className="flex items-center justify-center bg-white dark:bg-gray-700 p-4 rounded-xl shadow-soft hover:shadow-soft-lg transition-all border border-gray-200 dark:border-gray-600"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center mr-3">
-                          <Download className="w-6 h-6 text-white" />
-                        </div>
-                        <div className="text-left">
-                          <p className="text-xs text-gray-500 dark:text-gray-400">Download for</p>
-                          <p className="font-semibold dark:text-white">Android</p>
-                        </div>
-                        <ExternalLink className="w-4 h-4 text-gray-400 ml-2" />
+                  {/* Single Download Button */}
+                  <motion.button
+                    onClick={handleAppDownload}
+                    className="w-full flex items-center justify-center bg-white dark:bg-gray-700 p-6 rounded-xl shadow-soft hover:shadow-soft-lg transition-all border border-gray-200 dark:border-gray-600 mb-6"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <div className="flex items-center">
+                      <div className="w-12 h-12 bg-gradient-to-r from-primary to-primary-600 rounded-xl flex items-center justify-center mr-4">
+                        <Download className="w-6 h-6 text-white" />
                       </div>
-                    </motion.button>
-
-                    {/* iOS Download */}
-                    <motion.button
-                      onClick={() => handleAppDownload('ios')}
-                      className="flex items-center justify-center bg-white dark:bg-gray-700 p-4 rounded-xl shadow-soft hover:shadow-soft-lg transition-all border border-gray-200 dark:border-gray-600"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-gray-800 dark:bg-gray-600 rounded-lg flex items-center justify-center mr-3">
-                          <Download className="w-6 h-6 text-white" />
-                        </div>
-                        <div className="text-left">
-                          <p className="text-xs text-gray-500 dark:text-gray-400">Download for</p>
-                          <p className="font-semibold dark:text-white">iOS</p>
-                        </div>
-                        <ExternalLink className="w-4 h-4 text-gray-400 ml-2" />
+                      <div className="text-left flex-1">
+                        <p className="text-lg font-bold dark:text-white">Download MyHisaab App</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Available for iOS & Android</p>
                       </div>
-                    </motion.button>
-                  </div>
+                      <ExternalLink className="w-5 h-5 text-gray-400 ml-4" />
+                    </div>
+                  </motion.button>
 
                   {/* App Features */}
-                  <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
                     {[
                       'Real-time Tracking',
                       'Offline Capability',
