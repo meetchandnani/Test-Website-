@@ -6,11 +6,13 @@ import { ThemeToggle } from './ThemeToggle';
 import { useTheme } from './ThemeContext';
 import { useCart } from '../contexts/CartContext';
 import { GetStartedModal } from './GetStartedModal';
+import { CartPreview } from './CartPreview';
 
 export const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showGetStartedModal, setShowGetStartedModal] = useState(false);
+  const [showCartPreview, setShowCartPreview] = useState(false);
   const location = useLocation();
   const { isDark } = useTheme();
   const { getTotalItems } = useCart();
@@ -51,6 +53,12 @@ export const Header: React.FC = () => {
 
   const totalItems = getTotalItems();
 
+  const handleCartClick = () => {
+    if (totalItems > 0) {
+      setShowCartPreview(true);
+    }
+  };
+
   return (
     <>
       <motion.header
@@ -64,6 +72,7 @@ export const Header: React.FC = () => {
         transition={{ duration: 0.5 }}
       >
         <div className="container flex items-center justify-between">
+          {/* Logo */}
           <motion.Link 
             to="/" 
             className="flex items-center"
@@ -105,26 +114,34 @@ export const Header: React.FC = () => {
             {/* Theme Toggle */}
             <ThemeToggle />
             
-            {/* Cart Icon */}
-            <motion.Link
-              to="/cart"
+            {/* Cart Icon with Company Logo */}
+            <motion.button
+              onClick={handleCartClick}
+              onMouseEnter={() => totalItems > 0 && setShowCartPreview(true)}
+              onMouseLeave={() => setShowCartPreview(false)}
               className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={scrollToTop}
             >
-              <ShoppingCart className="w-6 h-6 text-gray-700 dark:text-gray-300" />
-              {totalItems > 0 && (
-                <motion.span
-                  className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                >
-                  {totalItems}
-                </motion.span>
-              )}
-            </motion.Link>
+              {/* Company Logo as Cart Icon */}
+              <div className="relative">
+                <img 
+                  src="/WhatsApp Image 2025-01-14 at 22.37.16-Photoroom.png"
+                  alt="MyHisaab Cart" 
+                  className="w-6 h-6"
+                />
+                {totalItems > 0 && (
+                  <motion.span
+                    className="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  >
+                    {totalItems}
+                  </motion.span>
+                )}
+              </div>
+            </motion.button>
             
             <motion.button 
               onClick={handleGetStartedClick}
@@ -141,25 +158,30 @@ export const Header: React.FC = () => {
             <ThemeToggle />
             
             {/* Mobile Cart Icon */}
-            <motion.Link
-              to="/cart"
+            <motion.button
+              onClick={handleCartClick}
               className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={scrollToTop}
             >
-              <ShoppingCart className="w-6 h-6 text-gray-700 dark:text-gray-300" />
-              {totalItems > 0 && (
-                <motion.span
-                  className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                >
-                  {totalItems}
-                </motion.span>
-              )}
-            </motion.Link>
+              <div className="relative">
+                <img 
+                  src="/WhatsApp Image 2025-01-14 at 22.37.16-Photoroom.png"
+                  alt="MyHisaab Cart" 
+                  className="w-6 h-6"
+                />
+                {totalItems > 0 && (
+                  <motion.span
+                    className="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  >
+                    {totalItems}
+                  </motion.span>
+                )}
+              </div>
+            </motion.button>
             
             <motion.button 
               className="text-gray-700 dark:text-gray-300"
@@ -224,6 +246,12 @@ export const Header: React.FC = () => {
           )}
         </AnimatePresence>
       </motion.header>
+
+      {/* Cart Preview */}
+      <CartPreview 
+        isVisible={showCartPreview}
+        onClose={() => setShowCartPreview(false)}
+      />
 
       {/* Get Started Modal */}
       <GetStartedModal 

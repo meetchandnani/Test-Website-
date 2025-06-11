@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Star, Users, Calculator, ShoppingCart, Plus, CreditCard, Wallet, X, Tag, Percent } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
+import { AddToCartConfirmation } from './AddToCartConfirmation';
+import { useNavigate } from 'react-router-dom';
 
 declare global {
   interface Window {
@@ -59,12 +61,25 @@ const coupons = {
 export const PricingSection: React.FC = () => {
   const [isYearly, setIsYearly] = useState(true);
   const [employeeCount, setEmployeeCount] = useState(5);
-  const [showSuccessMessage, setShowSuccessMessage] = useState<number | null>(null);
-  const [selectedPlan, setSelectedPlan] = useState<number | null>(null);
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [couponError, setCouponError] = useState('');
+  const [showConfirmation, setShowConfirmation] = useState<{
+    visible: boolean;
+    planName: string;
+    price: number;
+    employeeCount: number;
+    billing: 'monthly' | 'yearly';
+  }>({
+    visible: false,
+    planName: '',
+    price: 0,
+    employeeCount: 0,
+    billing: 'monthly'
+  });
+  
   const { addToCart } = useCart();
+  const navigate = useNavigate();
 
   const calculatePrice = (plan: any, employees: number) => {
     if (isYearly) {
@@ -147,9 +162,14 @@ export const PricingSection: React.FC = () => {
       discount: appliedCoupon ? getDiscountAmount(plan, employeeCount) : undefined
     });
 
-    // Show success message
-    setShowSuccessMessage(planIndex);
-    setTimeout(() => setShowSuccessMessage(null), 2000);
+    // Show confirmation popup
+    setShowConfirmation({
+      visible: true,
+      planName: plan.name,
+      price: finalPrice,
+      employeeCount,
+      billing: isYearly ? 'yearly' : 'monthly'
+    });
     
     // Reset coupon
     setAppliedCoupon(null);
@@ -157,53 +177,13 @@ export const PricingSection: React.FC = () => {
     setCouponError('');
   };
 
-  const handleSubscribeNow = (planIndex: number) => {
-    setSelectedPlan(planIndex);
+  const handleViewCart = () => {
+    setShowConfirmation(prev => ({ ...prev, visible: false }));
+    navigate('/cart');
   };
 
-  const handlePayment = (method: 'card' | 'upi') => {
-    if (selectedPlan === null) return;
-    
-    const plan = plans[selectedPlan];
-    const finalAmount = getFinalPrice(plan, employeeCount);
-    
-    const options = {
-      key: 'rzp_live_48budavqkFEuRM',
-      amount: finalAmount * 100,
-      currency: 'INR',
-      name: 'MyHisaab',
-      description: `${plan.name} - ${employeeCount} employees - ${isYearly ? 'yearly' : 'monthly'}${appliedCoupon ? ` (${appliedCoupon} applied)` : ''}`,
-      image: '/WhatsApp Image 2025-01-14 at 22.37.16-Photoroom.png',
-      handler: function (response: any) {
-        alert(`Payment successful! Payment ID: ${response.razorpay_payment_id}`);
-        setSelectedPlan(null);
-        setAppliedCoupon(null);
-        setCouponCode('');
-      },
-      prefill: {
-        name: '',
-        email: '',
-        contact: ''
-      },
-      notes: {
-        plan: plan.name,
-        billing: isYearly ? 'yearly' : 'monthly',
-        employees: employeeCount.toString(),
-        coupon: appliedCoupon || 'none'
-      },
-      theme: {
-        color: '#F7B500'
-      },
-      method: {
-        card: method === 'card',
-        upi: method === 'upi',
-        netbanking: false,
-        wallet: false
-      }
-    };
-
-    const rzp = new window.Razorpay(options);
-    rzp.open();
+  const handleContinueShopping = () => {
+    setShowConfirmation(prev => ({ ...prev, visible: false }));
   };
 
   return (
@@ -385,31 +365,6 @@ export const PricingSection: React.FC = () => {
                     : 'border border-gray-200 dark:border-gray-700 shadow-soft'
                 }`}
               >
-                {/* Success Message */}
-                <AnimatePresence>
-                  {showSuccessMessage === index && (
-                    <motion.div
-                      className="absolute inset-0 bg-green-500 bg-opacity-95 flex items-center justify-center z-10 rounded-3xl"
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <div className="text-center text-white">
-                        <motion.div
-                          className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4"
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 0.5 }}
-                        >
-                          <ShoppingCart className="w-8 h-8" />
-                        </motion.div>
-                        <h3 className="text-xl font-bold mb-2">Added to Cart!</h3>
-                        <p className="text-sm opacity-90">{plan.name} for {employeeCount} employees</p>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
                 {plan.popular && (
                   <div className="bg-primary text-white text-center py-3 font-semibold flex items-center justify-center">
                     <Star className="w-4 h-4 mr-2" />
@@ -466,26 +421,16 @@ export const PricingSection: React.FC = () => {
                     </div>
                   </motion.div>
                   
-                  <div className="flex space-x-2 mb-8">
-                    <motion.button
-                      onClick={() => handleAddToCart(index)}
-                      className="flex-1 btn btn-outline flex items-center justify-center gap-2"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      disabled={showSuccessMessage === index}
-                    >
-                      <Plus className="w-4 h-4" />
-                      Add to Cart
-                    </motion.button>
-                    <motion.button
-                      onClick={() => handleSubscribeNow(index)}
-                      className={`flex-1 btn ${plan.popular ? 'btn-primary' : 'btn-outline'}`}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      Subscribe Now
-                    </motion.button>
-                  </div>
+                  {/* Single Add to Cart Button */}
+                  <motion.button
+                    onClick={() => handleAddToCart(index)}
+                    className={`w-full btn ${plan.popular ? 'btn-primary' : 'btn-outline'} flex items-center justify-center gap-2 mb-8`}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                    Add to Cart
+                  </motion.button>
 
                   <div className="space-y-4">
                     {plan.features.map((feature, fIndex) => (
@@ -513,149 +458,16 @@ export const PricingSection: React.FC = () => {
         </div>
       </section>
 
-      {/* Subscribe Now Modal */}
-      <AnimatePresence>
-        {selectedPlan !== null && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) {
-                setSelectedPlan(null);
-                setAppliedCoupon(null);
-                setCouponCode('');
-                setCouponError('');
-              }
-            }}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white dark:bg-gray-800 rounded-3xl p-8 max-w-md w-full shadow-xl max-h-[90vh] overflow-y-auto"
-            >
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-bold dark:text-white">Subscribe to {plans[selectedPlan].name}</h3>
-                <button
-                  onClick={() => {
-                    setSelectedPlan(null);
-                    setAppliedCoupon(null);
-                    setCouponCode('');
-                    setCouponError('');
-                  }}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-
-              {/* Coupon Code Section */}
-              <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl">
-                <div className="flex items-center mb-3">
-                  <Tag className="w-5 h-5 text-primary mr-2" />
-                  <h4 className="font-semibold dark:text-white">Have a Coupon Code?</h4>
-                </div>
-                
-                {!appliedCoupon ? (
-                  <div className="space-y-3">
-                    <div className="flex space-x-2">
-                      <input
-                        type="text"
-                        value={couponCode}
-                        onChange={(e) => setCouponCode(e.target.value)}
-                        placeholder="Enter coupon code"
-                        className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary focus:border-primary dark:bg-gray-600 dark:text-white text-sm"
-                      />
-                      <button
-                        onClick={applyCoupon}
-                        className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors text-sm font-medium"
-                      >
-                        Apply
-                      </button>
-                    </div>
-                    {couponError && (
-                      <p className="text-red-500 text-xs">{couponError}</p>
-                    )}
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between bg-green-50 dark:bg-green-900/30 p-3 rounded-lg">
-                    <div className="flex items-center">
-                      <Percent className="w-4 h-4 text-green-600 mr-2" />
-                      <span className="text-green-700 dark:text-green-300 font-medium text-sm">
-                        {appliedCoupon} - {coupons[appliedCoupon as keyof typeof coupons].description}
-                      </span>
-                    </div>
-                    <button
-                      onClick={removeCoupon}
-                      className="text-red-500 hover:text-red-700 text-sm"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Plan Summary */}
-              <div className="mb-6 p-4 bg-primary-50 dark:bg-primary-900/30 rounded-2xl">
-                <h4 className="font-semibold text-lg dark:text-white">{plans[selectedPlan].name}</h4>
-                
-                <div className="space-y-2 mt-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600 dark:text-gray-300">Base Price:</span>
-                    <span className="font-medium dark:text-white">
-                      ₹{calculatePrice(plans[selectedPlan], employeeCount).toLocaleString()}
-                    </span>
-                  </div>
-                  
-                  {appliedCoupon && (
-                    <div className="flex justify-between items-center text-green-600 dark:text-green-400">
-                      <span>Discount ({coupons[appliedCoupon as keyof typeof coupons].description}):</span>
-                      <span>-₹{getDiscountAmount(plans[selectedPlan], employeeCount).toLocaleString()}</span>
-                    </div>
-                  )}
-                  
-                  <div className="border-t border-gray-200 dark:border-gray-600 pt-2">
-                    <div className="flex justify-between items-center">
-                      <span className="font-semibold dark:text-white">Total:</span>
-                      <span className="text-2xl font-bold text-primary">
-                        ₹{getFinalPrice(plans[selectedPlan], employeeCount).toLocaleString()}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 text-right">
-                      {isYearly ? 'per year' : 'per month'} for {employeeCount} employees
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Payment Buttons */}
-              <div className="space-y-4">
-                <motion.button
-                  onClick={() => handlePayment('card')}
-                  className="w-full btn btn-primary flex items-center justify-center gap-2"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <CreditCard className="w-5 h-5" />
-                  Pay with Card
-                </motion.button>
-                
-                <motion.button
-                  onClick={() => handlePayment('upi')}
-                  className="w-full btn btn-outline flex items-center justify-center gap-2"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <Wallet className="w-5 h-5" />
-                  Pay with UPI
-                </motion.button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Add to Cart Confirmation */}
+      <AddToCartConfirmation
+        isVisible={showConfirmation.visible}
+        planName={showConfirmation.planName}
+        price={showConfirmation.price}
+        employeeCount={showConfirmation.employeeCount}
+        billing={showConfirmation.billing}
+        onViewCart={handleViewCart}
+        onContinueShopping={handleContinueShopping}
+      />
     </>
   );
 };
