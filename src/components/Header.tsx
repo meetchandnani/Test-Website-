@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, ShoppingCart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ThemeToggle } from './ThemeToggle';
 import { useTheme } from './ThemeContext';
@@ -114,7 +114,7 @@ export const Header: React.FC = () => {
             {/* Theme Toggle */}
             <ThemeToggle />
             
-            {/* Cart Icon with Company Logo - Enhanced for animation targeting */}
+            {/* Cart Icon - Original Shopping Cart Icon */}
             <motion.button
               id="header-cart-icon"
               onClick={handleCartClick}
@@ -124,13 +124,10 @@ export const Header: React.FC = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              {/* Company Logo as Cart Icon */}
+              {/* Original Shopping Cart Icon */}
               <div className="relative">
-                <img 
-                  src="/WhatsApp Image 2025-01-14 at 22.37.16-Photoroom.png"
-                  alt="MyHisaab Cart" 
-                  className="w-6 h-6"
-                />
+                <ShoppingCart className="w-6 h-6 text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors" />
+                
                 {totalItems > 0 && (
                   <motion.span
                     className="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"
@@ -175,7 +172,7 @@ export const Header: React.FC = () => {
           <div className="md:hidden flex items-center space-x-2">
             <ThemeToggle />
             
-            {/* Mobile Cart Icon */}
+            {/* Mobile Cart Icon - Original Shopping Cart Icon */}
             <motion.button
               id="mobile-cart-icon"
               onClick={handleCartClick}
@@ -184,11 +181,8 @@ export const Header: React.FC = () => {
               whileTap={{ scale: 0.95 }}
             >
               <div className="relative">
-                <img 
-                  src="/WhatsApp Image 2025-01-14 at 22.37.16-Photoroom.png"
-                  alt="MyHisaab Cart" 
-                  className="w-6 h-6"
-                />
+                <ShoppingCart className="w-6 h-6 text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors" />
+                
                 {totalItems > 0 && (
                   <motion.span
                     className="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"
