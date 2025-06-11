@@ -148,6 +148,9 @@ export const PricingSection: React.FC = () => {
       discount: appliedCoupon ? getDiscountAmount(plan, employeeCount) : undefined
     });
 
+    // Show success message
+    alert(`${plan.name} added to cart successfully!`);
+
     // Reset coupon after adding to cart
     setAppliedCoupon(null);
     setCouponCode('');
